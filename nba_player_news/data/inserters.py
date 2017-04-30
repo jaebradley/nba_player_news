@@ -14,8 +14,8 @@ class RotoWireInserter:
 
     def insert(self):
         for player_news_item in Client.get_player_news():
-            self.redis_client.set(name=RotoWireInserter.calculate_key_id(player_news_item=player_news_item),
-                                  value=json.dumps(RotoWireInserter.to_json(player_news_item=player_news_item)))
+            self.redis_client.setnx(name=RotoWireInserter.calculate_key_id(player_news_item=player_news_item),
+                                    value=json.dumps(RotoWireInserter.to_json(player_news_item=player_news_item)))
 
     @staticmethod
     def calculate_key_id(player_news_item):
