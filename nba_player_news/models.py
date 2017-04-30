@@ -15,7 +15,7 @@ class SubscriptionPlatformEnum(Enum):
 
 
 class SubscriptionPlatform(Model):
-    name = EnumField(SubscriptionPlatformEnum, max_length=1)
+    name = EnumField(SubscriptionPlatformEnum, max_length=50)
 
 
 class Subscription(Model):
