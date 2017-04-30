@@ -15,5 +15,5 @@ class RotoWireInserter:
 
     @staticmethod
     def calculate_key_id(player_news_item):
-        return "RotoWire" + "|" + unicode(player_news_item.source_id) + "|" \
-               +  unicode(player_news_item.source_player_id) + "|" + unicode(player_news_item.source_update_id)
+        return "RotoWire" + ":" + unicode(player_news_item.source_id) + ":" \
+               +  unicode(player_news_item.source_player_id) + ":" + unicode(player_news_item.source_update_id)
