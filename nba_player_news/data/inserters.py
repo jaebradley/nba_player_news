@@ -31,7 +31,8 @@ class RotoWireInserter:
 
             if was_set:
                 RotoWireInserter.logger.info("Publishing player news item: {} to channel {}".format(value, REDIS_CHANNEL_NAME))
-                self.redis_client.publish(channel=REDIS_CHANNEL_NAME, message=value)
+                subscriber_count = self.redis_client.publish(channel=REDIS_CHANNEL_NAME, message=value)
+                RotoWireInserter.logger.info("Published player news item: {} to channel {} with {} subscribers".format(value, REDIS_CHANNEL_NAME, subscriber_count))
 
     @staticmethod
     def calculate_key(player_news_item):
