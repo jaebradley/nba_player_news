@@ -1,16 +1,17 @@
 import datetime
 import json
-import os
 
 import pytz
 import redis
 from nba_data import Client
 
+from environment import REDIS_HOST, REDIS_PORT, REDIS_CHANNEL_NAME
+
 
 class RotoWireInserter:
 
     def __init__(self):
-        self.redis_client = redis.StrictRedis(host=os.environ['REDIS_HOST'], port=os.environ['REDIS_PORT'], db=0)
+        self.redis_client = redis.StrictRedis(host=REDIS_HOST, port=REDIS_PORT, db=0)
 
     def insert(self):
         for player_news_item in Client.get_player_news():
@@ -18,7 +19,7 @@ class RotoWireInserter:
                                              value=RotoWireInserter.to_json(player_news_item=player_news_item))
 
             if is_set:
-                self.redis_client.publish(channel="nba_player_news",
+                self.redis_client.publish(channel=REDIS_CHANNEL_NAME,
                                           message=RotoWireInserter.to_json(player_news_item=player_news_item))
 
     @staticmethod
