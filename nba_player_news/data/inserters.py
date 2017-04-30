@@ -1,29 +1,40 @@
+# -*- coding: utf-8 -*-
+
 import datetime
 import json
 
 import pytz
 import redis
+import logging
+import logging.config
+import os
 from nba_data import Client
 
 from environment import REDIS_HOST, REDIS_PORT, REDIS_CHANNEL_NAME
 
 
 class RotoWireInserter:
+    logging.config.fileConfig(os.path.join(os.path.dirname(__file__), '../../logger.conf'))
+    logger = logging.getLogger('inserter')
 
     def __init__(self):
         self.redis_client = redis.StrictRedis(host=REDIS_HOST, port=REDIS_PORT, db=0)
 
     def insert(self):
         for player_news_item in Client.get_player_news():
-            is_set = self.redis_client.setnx(name=RotoWireInserter.calculate_key_id(player_news_item=player_news_item),
-                                             value=RotoWireInserter.to_json(player_news_item=player_news_item))
+            value = RotoWireInserter.to_json(player_news_item=player_news_item)
 
-            if is_set:
-                self.redis_client.publish(channel=REDIS_CHANNEL_NAME,
-                                          message=RotoWireInserter.to_json(player_news_item=player_news_item))
+            RotoWireInserter.logger.info("Inserting player news item: {}".format(value))
+            was_set = self.redis_client.setnx(name=RotoWireInserter.calculate_key(player_news_item=player_news_item),
+                                              value=value)
+            RotoWireInserter.logger.info("Inserted player news item: {} | was set: {}".format(value, was_set))
+
+            if was_set:
+                RotoWireInserter.logger.info("Publishing player news item: {} to channel {}".format(value, REDIS_CHANNEL_NAME))
+                self.redis_client.publish(channel=REDIS_CHANNEL_NAME, message=value)
 
     @staticmethod
-    def calculate_key_id(player_news_item):
+    def calculate_key(player_news_item):
         return "RotoWire:{p.source_id}:{p.source_player_id}:{p.source_update_id}".format(p=player_news_item)
 
     @staticmethod
