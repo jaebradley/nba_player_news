@@ -35,6 +35,7 @@ ALLOWED_HOSTS = []
 
 INSTALLED_APPS = [
     'nba_player_news',
+    'graphene_django',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -73,6 +74,10 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'nba_player_news.wsgi.application'
+
+GRAPHENE = {
+    'SCHEMA': 'nba_player_news.schema.schema' # Where your Graphene schema lives
+}
 
 
 # Database
