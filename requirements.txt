@@ -3,7 +3,7 @@ dj-database-url==0.4.2
 Django==1.11
 django-dotenv==1.4.1
 enum34==1.1.6
-nba-data==1.8
+nba-data==1.9
 psycopg2==2.7.1
 pytz==2017.2
 redis==2.10.5
