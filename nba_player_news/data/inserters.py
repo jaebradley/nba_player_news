@@ -1,10 +1,10 @@
-import calendar
 import datetime
 import json
 import os
+
 import pytz
-from nba_data import Client
 import redis
+from nba_data import Client
 
 
 class RotoWireInserter:
@@ -14,8 +14,12 @@ class RotoWireInserter:
 
     def insert(self):
         for player_news_item in Client.get_player_news():
-            self.redis_client.setnx(name=RotoWireInserter.calculate_key_id(player_news_item=player_news_item),
-                                    value=json.dumps(RotoWireInserter.to_json(player_news_item=player_news_item)))
+            is_set = self.redis_client.setnx(name=RotoWireInserter.calculate_key_id(player_news_item=player_news_item),
+                                             value=RotoWireInserter.to_json(player_news_item=player_news_item))
+
+            if is_set:
+                self.redis_client.publish(channel="nba_player_news",
+                                          message=RotoWireInserter.to_json(player_news_item=player_news_item))
 
     @staticmethod
     def calculate_key_id(player_news_item):
@@ -23,7 +27,7 @@ class RotoWireInserter:
 
     @staticmethod
     def to_json(player_news_item):
-        return {
+        return json.dumps({
             "caption": player_news_item.caption,
             "description": player_news_item.description,
             "published_at_unix_timestamp": RotoWireInserter.to_timestamp(value=player_news_item.published_at),
@@ -43,7 +47,7 @@ class RotoWireInserter:
                 "detail": player_news_item.injury.detail,
                 "side": player_news_item.injury.side
             }
-        }
+        })
 
     @staticmethod
     def to_timestamp(value):
