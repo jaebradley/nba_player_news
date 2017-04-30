@@ -19,7 +19,7 @@ class RotoWireInserter:
 
     @staticmethod
     def calculate_key_id(player_news_item):
-        return "Rotowire:{p.source_id}:{p.source_player_id}:{p.source_update_id}".format(p=player_news_item)
+        return "RotoWire:{p.source_id}:{p.source_player_id}:{p.source_update_id}".format(p=player_news_item)
 
     @staticmethod
     def to_json(player_news_item):
@@ -32,14 +32,13 @@ class RotoWireInserter:
             "source_player_id": player_news_item.source_player_id,
             "first_name": player_news_item.first_name,
             "last_name": player_news_item.last_name,
-            "position": player_news_item.position,
-            "team": player_news_item.team,
-            "date_unix_timestamp": RotoWireInserter.to_timestamp(value=player_news_item.date),
+            "position": player_news_item.position.name,
+            "team": player_news_item.team.name,
             "priority": player_news_item.priority,
             "headline": player_news_item.headline,
             "injury": {
                 "is_injured": player_news_item.injury.is_injured,
-                "status": player_news_item.injury.status,
+                "status": player_news_item.injury.status.name,
                 "affected_area": player_news_item.injury.affected_area,
                 "detail": player_news_item.injury.detail,
                 "side": player_news_item.injury.side
