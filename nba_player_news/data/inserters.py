@@ -1,5 +1,8 @@
+import calendar
+import datetime
 import json
 import os
+import pytz
 from nba_data import Client
 import redis
 
@@ -12,8 +15,37 @@ class RotoWireInserter:
     def insert(self):
         for player_news_item in Client.get_player_news():
             self.redis_client.set(name=RotoWireInserter.calculate_key_id(player_news_item=player_news_item),
-                                  value=json.dumps(player_news_item))
+                                  value=json.dumps(RotoWireInserter.to_json(player_news_item=player_news_item)))
 
     @staticmethod
     def calculate_key_id(player_news_item):
         return "Rotowire:{p.source_id}:{p.source_player_id}:{p.source_update_id}".format(p=player_news_item)
+
+    @staticmethod
+    def to_json(player_news_item):
+        return {
+            "caption": player_news_item.caption,
+            "description": player_news_item.description,
+            "published_at_unix_timestamp": RotoWireInserter.to_timestamp(value=player_news_item.published_at),
+            "source_update_id": player_news_item.source_update_id,
+            "source_id": player_news_item.source_id,
+            "source_player_id": player_news_item.source_player_id,
+            "first_name": player_news_item.first_name,
+            "last_name": player_news_item.last_name,
+            "position": player_news_item.position,
+            "team": player_news_item.team,
+            "date_unix_timestamp": RotoWireInserter.to_timestamp(value=player_news_item.date),
+            "priority": player_news_item.priority,
+            "headline": player_news_item.headline,
+            "injury": {
+                "is_injured": player_news_item.injury.is_injured,
+                "status": player_news_item.injury.status,
+                "affected_area": player_news_item.injury.affected_area,
+                "detail": player_news_item.injury.detail,
+                "side": player_news_item.injury.side
+            }
+        }
+
+    @staticmethod
+    def to_timestamp(value):
+        return (value - datetime.datetime(1970, 1, 1, tzinfo=pytz.utc)).total_seconds()
