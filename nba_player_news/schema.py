@@ -1,7 +1,7 @@
 from graphene import ObjectType as GrapheneObjectType, Schema, Node, NonNull, Int, String, Field, Boolean, Mutation
 from graphene_django import DjangoObjectType
-from graphene_django.filter import DjangoFilterConnectionField
 from graphene_django.debug import DjangoDebug
+from graphene_django.filter import DjangoFilterConnectionField
 
 from nba_player_news.models import Subscription as SubscriptionModel
 
