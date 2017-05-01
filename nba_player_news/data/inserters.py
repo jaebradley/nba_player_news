@@ -2,6 +2,7 @@
 
 import datetime
 import json
+from unidecode import unidecode
 
 import pytz
 import redis
@@ -40,25 +41,26 @@ class RotoWireInserter:
 
     @staticmethod
     def to_json(player_news_item):
+        print player_news_item.__dict__
         return json.dumps({
-            "caption": player_news_item.caption,
-            "description": player_news_item.description,
+            "caption": unidecode(unicode(player_news_item.caption)),
+            "description": unidecode(unicode(player_news_item.description)),
             "published_at_unix_timestamp": RotoWireInserter.to_timestamp(value=player_news_item.published_at),
             "source_update_id": player_news_item.source_update_id,
             "source_id": player_news_item.source_id,
             "source_player_id": player_news_item.source_player_id,
-            "first_name": player_news_item.first_name,
-            "last_name": player_news_item.last_name,
-            "position": player_news_item.position.name,
-            "team": player_news_item.team.name,
+            "first_name": unidecode(unicode(player_news_item.first_name)),
+            "last_name": unidecode(unicode(player_news_item.last_name)),
+            "position": player_news_item.position.value,
+            "team": player_news_item.team.value,
             "priority": player_news_item.priority,
-            "headline": player_news_item.headline,
+            "headline": unidecode(unicode(player_news_item.headline)),
             "injury": {
                 "is_injured": player_news_item.injury.is_injured,
-                "status": player_news_item.injury.status.name,
-                "affected_area": player_news_item.injury.affected_area,
-                "detail": player_news_item.injury.detail,
-                "side": player_news_item.injury.side
+                "status": player_news_item.injury.status.value,
+                "affected_area": unidecode(unicode(player_news_item.injury.affected_area)),
+                "detail": unidecode(unicode(player_news_item.injury.detail)),
+                "side": unidecode(unicode(player_news_item.injury.side))
             }
         })
 

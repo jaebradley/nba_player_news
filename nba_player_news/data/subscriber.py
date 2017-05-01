@@ -2,6 +2,7 @@ import json
 import logging
 import logging.config
 import os
+import datetime
 
 import redis
 
@@ -20,11 +21,13 @@ class Subscriber:
         self.publisher_subscriber.subscribe(REDIS_CHANNEL_NAME)
 
     def process_messages(self):
+        Subscriber.logger.info("Started processing messages at {}".format(datetime.datetime.now()))
+
         while True:
             message = self.publisher_subscriber.get_message()
-            if message:
+            if message and message["type"] == "message":
                 self.process_message(message=message)
 
     def process_message(self, message):
         Subscriber.logger.info("Processing message with pattern: {pattern} | type: {type} | channel: {channel} | data: {data}".format(**message))
-        self.email_subscriptions_publisher.publish(message=json.loads(message))
+        self.email_subscriptions_publisher.publish(message=json.loads(message["data"]))

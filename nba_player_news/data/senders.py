@@ -19,7 +19,7 @@ class Emailer:
         Emailer.logger.info("Sending message on behalf of user: {} to {} with message: {}".format(GMAIL_USERNAME, destination, message))
         self.client.send(
             to=destination,
-            subject=message.headline,
+            subject=message["headline"],
             contents=EmailMessageBuilder(message=message).build()
         )
 
