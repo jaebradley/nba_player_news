@@ -1,8 +1,8 @@
-import yagmail
-import os
 import logging
 import logging.config
+import os
 
+import yagmail
 
 from environment import GMAIL_PASSWORD, GMAIL_USERNAME
 from nba_player_news.data.sent_message_builders import EmailMessageBuilder

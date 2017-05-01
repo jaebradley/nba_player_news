@@ -1,9 +1,9 @@
-import os
 import logging
 import logging.config
+import os
 
-from nba_player_news.models import Subscription
 from nba_player_news.data.senders import Emailer
+from nba_player_news.models import Subscription
 
 
 class EmailSubscriptionsPublisher:

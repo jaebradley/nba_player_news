@@ -2,14 +2,14 @@
 
 import datetime
 import json
-from unidecode import unidecode
-
-import pytz
-import redis
 import logging
 import logging.config
 import os
+
+import pytz
+import redis
 from nba_data import Client
+from unidecode import unidecode
 
 from environment import REDIS_HOST, REDIS_PORT, REDIS_CHANNEL_NAME
 
