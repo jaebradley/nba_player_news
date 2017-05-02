@@ -7,7 +7,7 @@ import os
 import redis
 
 from environment import REDIS_HOST, REDIS_PORT, REDIS_CHANNEL_NAME
-from nba_player_news.data.platform_subscriptions_publishers import EmailSubscriptionsPublisher
+from nba_player_news.data.platform_subscriptions_publishers import EmailSubscriptionsPublisher, TwitterSubscriptionsPublisher
 
 
 class Subscriber:
@@ -16,6 +16,7 @@ class Subscriber:
 
     def __init__(self):
         self.email_subscriptions_publisher = EmailSubscriptionsPublisher()
+        self.twitter_subscriptions_publisher = TwitterSubscriptionsPublisher()
         self.redis_client = redis.StrictRedis(host=REDIS_HOST, port=REDIS_PORT, db=0)
         self.publisher_subscriber = self.redis_client.pubsub()
         self.publisher_subscriber.subscribe(REDIS_CHANNEL_NAME)
@@ -30,4 +31,6 @@ class Subscriber:
 
     def process_message(self, message):
         Subscriber.logger.info("Processing message with pattern: {pattern} | type: {type} | channel: {channel} | data: {data}".format(**message))
+        # Goddamn rate limits
+        # self.twitter_subscriptions_publisher.publish(message=json.loads(message["data"]))
         self.email_subscriptions_publisher.publish(message=json.loads(message["data"]))

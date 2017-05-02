@@ -8,14 +8,13 @@ class EmailMessageBuilder:
     message_body_format = """
         <h3>{headline}</h3>
         <h4>{caption}</h4>
-        <h5>Description</h5>
         <div>{description}</div>
         {injury_details_body}
-        <h7>Published At: {published_at}</h7>
+        <h5>Published At: {published_at}</h5>
     """
     injury_details_body_format = """
         <h5>Injury Details</h5>
-        <div>Status: {status} | Affected Area: {affected_area} | Side: {side} | Additional Details: {detail}
+        <div>Status: {status} | {side} {affected_area} {detail}<div>
     """
 
     def __init__(self, message):
@@ -54,7 +53,6 @@ class TwitterMessageBuilder:
 
     {caption}
 
-    Description:
     {description}
 
     {injury_details}
@@ -74,7 +72,7 @@ class TwitterMessageBuilder:
             headline=self.message["headline"],
             caption=self.message["caption"],
             description=self.message["description"],
-            injury_details_body=self.build_injury_details(),
+            injury_details=self.build_injury_details(),
             published_at=datetime.datetime.fromtimestamp(timestamp=self.message["published_at_unix_timestamp"]).isoformat()
         )
 

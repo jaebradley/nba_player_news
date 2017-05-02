@@ -30,9 +30,10 @@ class Tweeter:
     logger = logging.getLogger("tweeter")
 
     def __init__(self):
-        self.client = tweepy.API(tweepy.OAuthHandler(TWITTER_CONSUMER_KEY, TWITTER_CONSUMER_SECRET)
-                                       .set_access_token(TWITTER_ACCESS_TOKEN, TWITTER_ACCESS_SECRET))
+        auth = tweepy.OAuthHandler(TWITTER_CONSUMER_KEY, TWITTER_CONSUMER_SECRET)
+        auth.set_access_token(TWITTER_ACCESS_TOKEN, TWITTER_ACCESS_SECRET)
+        self.client = tweepy.API(auth, wait_on_rate_limit=True, wait_on_rate_limit_notify=True, compression=True)
 
-    def send(self, username, message):
-        self.client.send_direct_message(username, TwitterMessageBuilder(message=message).build())
+    def send(self, user_id, message):
+        self.client.send_direct_message(user_id=user_id, text=TwitterMessageBuilder(message=message).build())
 
