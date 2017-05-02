@@ -10,13 +10,16 @@ graphql-core==1.1
 graphql-relay==0.4.5
 iso8601==0.1.11
 nba-data==1.9
+oauthlib==2.0.2
 promise==2.0.2
 psycopg2==2.7.1
 pytz==2017.2
 redis==2.10.5
 requests==2.13.0
+requests-oauthlib==0.8.0
 singledispatch==3.4.0.3
 six==1.10.0
+tweepy==3.5.0
 typing==3.6.1
 Unidecode==0.4.20
 yagmail==0.6.161
