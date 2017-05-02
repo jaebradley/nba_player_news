@@ -79,13 +79,12 @@ class TwitterMessageBuilder:
         )
 
     def build_injury_details(self):
-        if self.message["injury"]["is_injured"]:
-            return TwitterMessageBuilder.injury_details_format.format(
-                status=self.message["injury"]["status"],
-                affected_area=self.message["injury"]["affected_area"],
-                side=self.message["injury"]["side"],
-                detail=self.message["injury"]["detail"]
-            )
+        if not self.message["injury"]["is_injured"]:
+            return ""
 
-        return ""
-
+        return TwitterMessageBuilder.injury_details_format.format(
+            status=self.message["injury"]["status"],
+            affected_area=self.message["injury"]["affected_area"],
+            side=self.message["injury"]["side"],
+            detail=self.message["injury"]["detail"]
+        )
