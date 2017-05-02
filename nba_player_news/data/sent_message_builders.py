@@ -45,3 +45,47 @@ class EmailMessageBuilder:
             side=self.message["injury"]["side"],
             detail=self.message["injury"]["detail"]
         )
+
+
+class TwitterMessageBuilder:
+
+    message_format = """
+    {headline}
+
+    {caption}
+
+    Description:
+    {description}
+
+    {injury_details}
+
+    Published At: {published_at}
+    """
+
+    injury_details_format = """
+    Status: {status} | {side} {affected_area} {detail}
+    """
+
+    def __init__(self, message):
+        self.message = message
+
+    def build(self):
+        return TwitterMessageBuilder.message_format.format(
+            headline=self.message["headline"],
+            caption=self.message["caption"],
+            description=self.message["description"],
+            injury_details_body=self.build_injury_details(),
+            published_at=datetime.datetime.fromtimestamp(timestamp=self.message["published_at_unix_timestamp"]).isoformat()
+        )
+
+    def build_injury_details(self):
+        if self.message["injury"]["is_injured"]:
+            return TwitterMessageBuilder.injury_details_format.format(
+                status=self.message["injury"]["status"],
+                affected_area=self.message["injury"]["affected_area"],
+                side=self.message["injury"]["side"],
+                detail=self.message["injury"]["detail"]
+            )
+
+        return ""
+

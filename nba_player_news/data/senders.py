@@ -6,7 +6,7 @@ import tweepy
 import yagmail
 
 from environment import GMAIL_PASSWORD, GMAIL_USERNAME, TWITTER_ACCESS_SECRET, TWITTER_ACCESS_TOKEN, TWITTER_CONSUMER_KEY, TWITTER_CONSUMER_SECRET
-from nba_player_news.data.sent_message_builders import EmailMessageBuilder
+from nba_player_news.data.sent_message_builders import EmailMessageBuilder, TwitterMessageBuilder
 
 
 class Emailer:
@@ -34,5 +34,5 @@ class Tweeter:
                                        .set_access_token(TWITTER_ACCESS_TOKEN, TWITTER_ACCESS_SECRET))
 
     def send(self, username, message):
-        self.client.send_direct_message(username, message)
+        self.client.send_direct_message(username, TwitterMessageBuilder(message=message).build())
 
