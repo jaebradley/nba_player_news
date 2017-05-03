@@ -11,7 +11,7 @@ import redis
 from nba_data import Client
 from unidecode import unidecode
 
-from environment import REDIS_HOST, REDIS_PORT, REDIS_CHANNEL_NAME
+from environment import REDIS_URL, REDIS_CHANNEL_NAME
 
 
 class RotoWireInserter:
@@ -19,7 +19,7 @@ class RotoWireInserter:
     logger = logging.getLogger('inserter')
 
     def __init__(self):
-        self.redis_client = redis.StrictRedis(host=REDIS_HOST, port=REDIS_PORT, db=0)
+        self.redis_client = redis.StrictRedis.from_url(url=REDIS_URL)
 
     def insert(self):
         for player_news_item in Client.get_player_news():
@@ -41,7 +41,7 @@ class RotoWireInserter:
 
     @staticmethod
     def to_json(player_news_item):
-        print player_news_item.__dict__
+        RotoWireInserter.logger.info("JSONifying Player News Item: {}", player_news_item)
         return json.dumps({
             "caption": unidecode(unicode(player_news_item.caption)),
             "description": unidecode(unicode(player_news_item.description)),
