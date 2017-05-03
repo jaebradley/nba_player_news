@@ -32,6 +32,6 @@ def facebook(request):
                         logger.info("Sender: {} | Recipient: {} | Message: {}".format(sender_id, recipient_id, message_text))
                         if message_text.lower == "subscribe":
                             Subscription.objects.create(platform="facebook", platform_identifier=sender_id)
-                            FacebookMessager.send(recipient_id=recipient_id, message="You are now subscribed")
+                            FacebookMessager().send(recipient_id=recipient_id, message="You are now subscribed")
 
     return HttpResponse("ok")
