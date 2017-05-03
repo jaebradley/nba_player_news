@@ -1,7 +1,8 @@
-from django.http import HttpResponse, HttpResponseForbidden
 import logging
 import logging.config
 import os
+
+from django.http import HttpResponse, HttpResponseForbidden
 
 from environment import FACEBOOK_VERIFY_TOKEN
 from models import Subscription
