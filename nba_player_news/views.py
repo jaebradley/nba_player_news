@@ -3,6 +3,7 @@ import logging.config
 import os
 
 from django.http import HttpResponse, HttpResponseForbidden
+from django.views.decorators.csrf import csrf_exempt
 
 from environment import FACEBOOK_VERIFY_TOKEN
 from models import Subscription
@@ -11,7 +12,7 @@ from nba_player_news.data.senders import FacebookMessager
 logging.config.fileConfig(os.path.join(os.path.dirname(__file__), "../logger.conf"))
 logger = logging.getLogger("subscriber")
 
-
+@csrf_exempt
 def facebook(request):
     if request.method == "GET":
         logger.info("Arguments: {}".format(request.GET))
