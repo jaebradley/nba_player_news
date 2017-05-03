@@ -38,6 +38,7 @@ INSTALLED_APPS = [
     'nba_player_news',
     'graphene_django',
     'django_filters',
+    "sslserver",
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
