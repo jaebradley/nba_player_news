@@ -5,8 +5,9 @@ import os
 import tweepy
 
 from environment import TWITTER_ACCESS_SECRET, TWITTER_ACCESS_TOKEN, TWITTER_CONSUMER_KEY, TWITTER_CONSUMER_SECRET
-from nba_player_news.data.senders import Emailer, Tweeter
+from nba_player_news.data.senders import Emailer, Tweeter, FacebookMessager
 from nba_player_news.models import Subscription
+from nba_player_news.data.sent_message_builders import FacebookMessengerMessageBuilder
 
 
 class EmailSubscriptionsPublisher:
@@ -17,7 +18,7 @@ class EmailSubscriptionsPublisher:
         self.emailer = Emailer()
 
     def publish(self, message):
-        for subscription in Subscription.objects.filter(platform="email"):
+        for subscription in Subscription.objects.filter(platform="email", unsubscribed_at=None):
             EmailSubscriptionsPublisher.logger.info("Publishing message: {} to subscription: {}".format(message, subscription))
             self.emailer.send(destination=subscription.platform_identifier, message=message)
 
@@ -38,3 +39,17 @@ class TwitterSubscriptionsPublisher:
             for follower_id in page:
                 TwitterSubscriptionsPublisher.logger.info("Publishing message: {} to follower: {}".format(message, follower_id))
                 self.tweeter.send(user_id=follower_id, message=message)
+
+
+class FacebookMessengerSubscriptionsPublisher:
+    logging.config.fileConfig(os.path.join(os.path.dirname(__file__), "../../logger.conf"))
+    logger = logging.getLogger("facebookSubscriptionsPublisher")
+
+    def __init__(self):
+        self.messager = FacebookMessager()
+
+    def publish(self, message):
+        for subscription in Subscription.objects.filter(platform="facebook", unsubscribed_at=None):
+            FacebookMessengerSubscriptionsPublisher.logger.info("Publishing message: {} to subscription: {}".format(message, subscription))
+            self.messager.send(recipient_id=subscription.platform_identifier, message=FacebookMessengerMessageBuilder(message).build())
+

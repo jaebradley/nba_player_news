@@ -5,7 +5,11 @@ import tweepy
 
 import yagmail
 
-from environment import GMAIL_PASSWORD, GMAIL_USERNAME, TWITTER_ACCESS_SECRET, TWITTER_ACCESS_TOKEN, TWITTER_CONSUMER_KEY, TWITTER_CONSUMER_SECRET
+import requests
+
+import json
+
+from environment import GMAIL_PASSWORD, GMAIL_USERNAME, TWITTER_ACCESS_SECRET, TWITTER_ACCESS_TOKEN, TWITTER_CONSUMER_KEY, TWITTER_CONSUMER_SECRET, FACEBOOK_PAGE_ACCESS_TOKEN
 from nba_player_news.data.sent_message_builders import EmailMessageBuilder, TwitterMessageBuilder
 
 
@@ -36,4 +40,44 @@ class Tweeter:
 
     def send(self, user_id, message):
         self.client.send_direct_message(user_id=user_id, text=TwitterMessageBuilder(message=message).build())
+
+
+class FacebookMessager:
+    logging.config.fileConfig(os.path.join(os.path.dirname(__file__), "../../logger.conf"))
+    logger = logging.getLogger("tweeter")
+
+    def __init__(self):
+        self.base_url = "https://graph.facebook.com/v2.6/me/messages"
+        self.base_parameters = {
+            "access_token": FACEBOOK_PAGE_ACCESS_TOKEN
+        }
+        self.headers = {
+            "Content-Type": "application/json"
+        }
+
+    def send(self, recipient_id, message):
+        FacebookMessager.logger.info("Sending message: {} to {}".format(message, recipient_id))
+
+        r = requests.post(url=self.base_url, params=self.base_parameters, headers=self.headers,
+                          data=FacebookMessager.build_data(recipient_id=recipient_id, message=message))
+
+        FacebookMessager.logger.info("Status Code: {} | Response: {}".format(r.status_code, r.json()))
+
+        r.raise_for_status()
+
+    @staticmethod
+    def build_data(recipient_id, message):
+        return json.dumps({
+            "recipient": {
+                "id": recipient_id
+            },
+            "message": {
+                "text": message
+            }
+        })
+
+
+
+
+
 
