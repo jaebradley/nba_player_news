@@ -86,3 +86,45 @@ class TwitterMessageBuilder:
             side=self.message["injury"]["side"],
             detail=self.message["injury"]["detail"]
         )
+
+
+class FacebookMessengerMessageBuilder:
+
+    message_format = """
+    {headline}
+
+    {caption}
+
+    {description}
+
+    {injury_details}
+
+    Published At: {published_at}
+    """
+
+    injury_details_format = """
+    Status: {status} | {side} {affected_area} {detail}
+    """
+
+    def __init__(self, message):
+        self.message = message
+
+    def build(self):
+        return FacebookMessengerMessageBuilder.message_format.format(
+            headline=self.message["headline"],
+            caption=self.message["caption"],
+            description=self.message["description"],
+            injury_details=self.build_injury_details(),
+            published_at=datetime.datetime.fromtimestamp(timestamp=self.message["published_at_unix_timestamp"]).isoformat()
+        )
+
+    def build_injury_details(self):
+        if not self.message["injury"]["is_injured"]:
+            return ""
+
+        return FacebookMessengerMessageBuilder.injury_details_format.format(
+            status=self.message["injury"]["status"],
+            affected_area=self.message["injury"]["affected_area"],
+            side=self.message["injury"]["side"],
+            detail=self.message["injury"]["detail"]
+        )

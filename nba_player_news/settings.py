@@ -37,6 +37,7 @@ ALLOWED_HOSTS = ["*"]
 INSTALLED_APPS = [
     'nba_player_news',
     'graphene_django',
+    'rest_framework',
     'django_filters',
     'django.contrib.admin',
     'django.contrib.auth',

@@ -6,7 +6,7 @@ import os
 
 import redis
 
-from environment import REDIS_HOST, REDIS_PORT, REDIS_CHANNEL_NAME
+from environment import REDIS_URL, REDIS_CHANNEL_NAME
 from nba_player_news.data.platform_subscriptions_publishers import EmailSubscriptionsPublisher, TwitterSubscriptionsPublisher
 
 
@@ -17,7 +17,7 @@ class Subscriber:
     def __init__(self):
         self.email_subscriptions_publisher = EmailSubscriptionsPublisher()
         self.twitter_subscriptions_publisher = TwitterSubscriptionsPublisher()
-        self.redis_client = redis.StrictRedis(host=REDIS_HOST, port=REDIS_PORT, db=0)
+        self.redis_client = redis.StrictRedis().from_url(url=REDIS_URL)
         self.publisher_subscriber = self.redis_client.pubsub()
         self.publisher_subscriber.subscribe(REDIS_CHANNEL_NAME)
 
