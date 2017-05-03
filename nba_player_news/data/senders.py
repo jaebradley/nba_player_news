@@ -42,7 +42,7 @@ class Tweeter:
 
 class FacebookMessager:
     logging.config.fileConfig(os.path.join(os.path.dirname(__file__), "../../logger.conf"))
-    logger = logging.getLogger("tweeter")
+    logger = logging.getLogger("facebookMessager")
 
     def __init__(self):
         self.base_url = "https://graph.facebook.com/v2.6/me/messages"
@@ -60,8 +60,6 @@ class FacebookMessager:
                           data=FacebookMessager.build_data(recipient_id=recipient_id, message=message))
 
         FacebookMessager.logger.info("Status Code: {} | Response: {}".format(r.status_code, r.json()))
-
-        r.raise_for_status()
 
     @staticmethod
     def build_data(recipient_id, message):

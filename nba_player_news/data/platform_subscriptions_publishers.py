@@ -51,5 +51,5 @@ class FacebookMessengerSubscriptionsPublisher:
     def publish(self, message):
         for subscription in Subscription.objects.filter(platform="facebook", unsubscribed_at=None):
             FacebookMessengerSubscriptionsPublisher.logger.info("Publishing message: {} to subscription: {}".format(message, subscription))
-            self.messager.send(recipient_id=subscription.platform_identifier, message=FacebookMessengerMessageBuilder(message).build())
+            self.messager.send(recipient_id=subscription.platform_identifier, message=FacebookMessengerMessageBuilder(message=message).build())
 
