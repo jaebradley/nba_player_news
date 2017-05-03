@@ -12,6 +12,7 @@ from nba_player_news.data.senders import FacebookMessager
 logging.config.fileConfig(os.path.join(os.path.dirname(__file__), "../logger.conf"))
 logger = logging.getLogger("subscriber")
 
+
 @csrf_exempt
 def facebook(request):
     if request.method == "GET":
@@ -31,7 +32,7 @@ def facebook(request):
                         recipient_id = message_event["recipient"]["id"]
                         message_text = message_event["message"]["text"]
                         logger.info("Sender: {} | Recipient: {} | Message: {}".format(sender_id, recipient_id, message_text))
-                        if message_text.lower == "subscribe":
+                        if message_text.lower() == "subscribe":
                             Subscription.objects.create(platform="facebook", platform_identifier=sender_id)
                             FacebookMessager().send(recipient_id=recipient_id, message="You are now subscribed")
 
