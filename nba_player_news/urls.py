@@ -5,5 +5,5 @@ from views import verify
 
 urlpatterns = [
     url(r'^graphql', GraphQLView.as_view(graphiql=True)),
-    url(r'^verify', verify)
+    url(r'^facebook', verify)
 ]
