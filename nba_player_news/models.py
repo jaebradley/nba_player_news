@@ -9,7 +9,7 @@ from django.db.models import Model, CharField, DateTimeField
 class Subscription(Model):
     platform = CharField(max_length=50, choices=(
         ("email", "Email"),
-        ("twitter", "Twitter"),
+        ("facebook", "Facebook"),
     ))
     platform_identifier = CharField(max_length=255)
     created_at = DateTimeField(auto_now_add=True)
