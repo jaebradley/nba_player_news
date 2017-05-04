@@ -62,3 +62,24 @@ class SubscriberEventsSubscriber:
             self.redis_client.publish(channel=REDIS_SUBSCRIPTION_MESSAGES_CHANNEL_NAME, message=subscription_message)
         else:
             SubscriberEventsSubscriber.logger.info("Unknown message: {}".format(message))
+
+
+class SubscriptionEventsSubscriber:
+    def __init__(self):
+        self.facebook_subscriber_events_processor = FacebookSubscriberEventsProcessor()
+        self.redis_client = redis.StrictRedis().from_url(url=REDIS_URL)
+        self.publisher_subscriber = self.redis_client.pubsub()
+        self.publisher_subscriber.subscribe(REDIS_SUBSCRIBER_EVENTS_CHANNEL_NAME)
+
+    def process_messages(self):
+        while True:
+            message = self.publisher_subscriber.get_message()
+            if message and message["type"] == "message":
+                self.process_message(message=message)
+
+    def process_message(self, message):
+        if message.platform == "facebook":
+            subscription_message = self.facebook_subscriber_events_processor.process(event_data=json.loads(message))
+            self.redis_client.publish(channel=REDIS_SUBSCRIPTION_MESSAGES_CHANNEL_NAME, message=subscription_message)
+        else:
+            SubscriberEventsSubscriber.logger.info("Unknown message: {}".format(message))
