@@ -39,7 +39,7 @@ class PlayerNewsSubscriber:
         self.facebook_messenger_subscriptions_publisher.publish(message=json.loads(message["data"]))
 
 
-class SubscriptionEventsSubscriber:
+class SubscriberEventsSubscriber:
     logging.config.fileConfig(os.path.join(os.path.dirname(__file__), "../../logger.conf"))
     logger = logging.getLogger("subscriber")
 
