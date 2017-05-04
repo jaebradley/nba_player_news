@@ -10,7 +10,7 @@ logging.config.fileConfig(os.path.join(os.path.dirname(__file__), "../../logger.
 logger = logging.getLogger("subscriptionEvents")
 
 
-class FacebookSubscriptionEventsProcessor:
+class FacebookSubscriberEventsProcessor:
     def __init__(self):
         self.messager = FacebookMessager()
 
