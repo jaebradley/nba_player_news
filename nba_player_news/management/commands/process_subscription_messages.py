@@ -1,6 +1,6 @@
 from django.core.management.base import BaseCommand
 
-from nba_player_news.data.subscriber import Subscriber
+from nba_player_news.data.subscribers import Subscriber
 
 
 class Command(BaseCommand):
