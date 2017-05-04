@@ -7,7 +7,7 @@ import os
 import redis
 
 from environment import REDIS_URL, REDIS_CHANNEL_NAME, REDIS_SUBSCRIBER_EVENTS_CHANNEL_NAME, REDIS_SUBSCRIPTION_MESSAGES_CHANNEL_NAME
-from nba_player_news.data.platform_subscriptions_publishers import EmailSubscriptionsPublisher, TwitterSubscriptionsPublisher, FacebookMessengerSubscriptionsPublisher
+from nba_player_news.data.platform_subscriptions_publishers import FacebookMessengerSubscriptionsPublisher
 from nba_player_news.data.senders import FacebookMessager
 from nba_player_news.data.subscriber_event_processors import FacebookSubscriberEventsProcessor
 
@@ -28,11 +28,11 @@ class PlayerNewsSubscriber:
         while True:
             message = self.publisher_subscriber.get_message()
             if message and message["type"] == "message":
-                self.process_message(message=message)
+                self.process_message(message=json.loads(message["data"]))
 
     def process_message(self, message):
         PlayerNewsSubscriber.logger.info("Processing message with pattern: {pattern} | type: {type} | channel: {channel} | data: {data}".format(**message))
-        self.facebook_messenger_subscriptions_publisher.publish(message=json.loads(message["data"]))
+        self.facebook_messenger_subscriptions_publisher.publish(message=message)
 
 
 class SubscriberEventsSubscriber:
@@ -70,12 +70,12 @@ class SubscriptionEventsSubscriber:
         while True:
             message = self.publisher_subscriber.get_message()
             if message and message["type"] == "message":
-                self.process_message(message=message)
+                self.process_message(message=json.loads(message))
 
     def process_message(self, message):
         if message.platform == "facebook":
-            subscription_message = self.facebook_subscriber_events_processor.process(event_data=json.loads(message))
-            self.redis_client.publish(channel=REDIS_SUBSCRIPTION_MESSAGES_CHANNEL_NAME, message=subscription_message)
+            subscription_message = self.facebook_subscriber_events_processor.process(event_data=message)
+            self.redis_client.publish(channel=REDIS_SUBSCRIPTION_MESSAGES_CHANNEL_NAME, message=json.dumps(subscription_message))
         else:
             SubscriberEventsSubscriber.logger.info("Unknown message: {}".format(message))
 
@@ -96,7 +96,7 @@ class SubscriptionMessagesSubscriber:
         while True:
             message = self.publisher_subscriber.get_message()
             if message and message["type"] == "message":
-                self.process_message(message=message)
+                self.process_message(message=json.loads(message))
 
     def process_message(self, message):
         SubscriptionMessagesSubscriber.logger.info("Processing message with pattern: {pattern} | type: {type} | channel: {channel} | data: {data}".format(**message))

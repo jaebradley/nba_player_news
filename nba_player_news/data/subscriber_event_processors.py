@@ -32,20 +32,20 @@ class FacebookSubscriberEventsProcessor:
         subscription, created = Subscription.objects.get_or_create(platform="facebook", platform_identifier=user_id)
         if created:
             return SubscriptionMessage(platform="facebook", platform_identifier=user_id,
-                                       message="You are now subscribed!")
+                                       text="You are now subscribed!")
 
         elif subscription.unsubscribed_at is not None:
             subscription.update(unsubscribed_at=None)
             return SubscriptionMessage(platform="facebook", platform_identifier=user_id,
-                                       message="Thanks for resubscribing!")
+                                       text="Thanks for resubscribing!")
 
     def process_unsubscribe_event(self, user_id):
         if not Subscription.objects.filter(platform="facebook", platform_identifier=user_id).exists():
             return SubscriptionMessage(platform="facebook", platform_identifier=user_id,
-                                       message="You don't have a subscription!")
+                                       text="You don't have a subscription!")
         else:
             Subscription.objects.filter(platform="facebook", platform_identifier=user_id).first()\
                                 .update(unsubscribed_at=datetime.datetime.now())
             return SubscriptionMessage(platform="facebook", platform_identifier=user_id,
-                                       message="You were unsubscribed!")
+                                       text="You were unsubscribed!")
 
