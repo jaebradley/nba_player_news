@@ -1,10 +1,10 @@
-import os
+import datetime
 import logging
 import logging.config
-import datetime
+import os
 
+from nba_player_news.data.messages import SubscriptionMessage
 from nba_player_news.models import Subscription
-from nba_player_news.data.senders import FacebookMessager
 
 logging.config.fileConfig(os.path.join(os.path.dirname(__file__), "../../logger.conf"))
 logger = logging.getLogger("subscriptionEvents")
@@ -12,7 +12,7 @@ logger = logging.getLogger("subscriptionEvents")
 
 class FacebookSubscriberEventsProcessor:
     def __init__(self):
-        self.messager = FacebookMessager()
+        pass
 
     def process(self, event_data):
         if event_data.get("object") == "page":
@@ -24,24 +24,28 @@ class FacebookSubscriberEventsProcessor:
                         message_text = message_event["message"]["text"]
                         logger.info("Sender: {} | Recipient: {} | Message: {}".format(sender_id, recipient_id, message_text))
                         if message_text.lower() == "subscribe":
-                            self.process_subscribe_event(user_id=sender_id)
+                            return self.process_subscribe_event(user_id=sender_id)
                         elif message_text.lower() == "unsubscribe":
                             self.process_unsubscribe_event(user_id=sender_id)
 
     def process_subscribe_event(self, user_id):
         subscription, created = Subscription.objects.get_or_create(platform="facebook", platform_identifier=user_id)
         if created:
-            self.messager.send(recipient_id=user_id, message="You are now subscribed!")
+            return SubscriptionMessage(platform="facebook", platform_identifier=user_id,
+                                       message="You are now subscribed!")
 
         elif subscription.unsubscribed_at is not None:
-            subscription.unsubscribed_at = None
-            subscription.save()
-            self.messager.send(recipient_id=user_id, message="Thanks for resubscribing!")
+            subscription.update(unsubscribed_at=None)
+            return SubscriptionMessage(platform="facebook", platform_identifier=user_id,
+                                       message="Thanks for resubscribing!")
 
     def process_unsubscribe_event(self, user_id):
         if not Subscription.objects.filter(platform="facebook", platform_identifier=user_id).exists():
-            self.messager.send(recipient_id=user_id, message="You don't have a subscription!")
+            return SubscriptionMessage(platform="facebook", platform_identifier=user_id,
+                                       message="You don't have a subscription!")
         else:
-            Subscription.objects.filter(platform="facebook", platform_identifier=user_id).first().update(unsubscribed_at=datetime.datetime.now())
-            self.messager.send(recipient_id=user_id, message="You were unsubscribed!")
+            Subscription.objects.filter(platform="facebook", platform_identifier=user_id).first()\
+                                .update(unsubscribed_at=datetime.datetime.now())
+            return SubscriptionMessage(platform="facebook", platform_identifier=user_id,
+                                       message="You were unsubscribed!")
 

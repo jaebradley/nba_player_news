@@ -6,8 +6,9 @@ import os
 
 import redis
 
-from environment import REDIS_URL, REDIS_CHANNEL_NAME, REDIS_SUBSCRIBER_EVENTS_CHANNEL_NAME
+from environment import REDIS_URL, REDIS_CHANNEL_NAME, REDIS_SUBSCRIBER_EVENTS_CHANNEL_NAME, REDIS_SUBSCRIPTION_MESSAGES_CHANNEL_NAME
 from nba_player_news.data.platform_subscriptions_publishers import EmailSubscriptionsPublisher, TwitterSubscriptionsPublisher, FacebookMessengerSubscriptionsPublisher
+from nba_player_news.data.subscriber_event_processors import FacebookSubscriberEventsProcessor
 
 
 class PlayerNewsSubscriber:
@@ -44,6 +45,7 @@ class SubscriberEventsSubscriber:
     logger = logging.getLogger("subscriber")
 
     def __init__(self):
+        self.facebook_subscriber_events_processor = FacebookSubscriberEventsProcessor()
         self.redis_client = redis.StrictRedis().from_url(url=REDIS_URL)
         self.publisher_subscriber = self.redis_client.pubsub()
         self.publisher_subscriber.subscribe(REDIS_SUBSCRIBER_EVENTS_CHANNEL_NAME)
@@ -56,4 +58,7 @@ class SubscriberEventsSubscriber:
 
     def process_message(self, message):
         if message.platform == "facebook":
-            return
+            subscription_message = self.facebook_subscriber_events_processor.process(event_data=json.loads(message))
+            self.redis_client.publish(channel=REDIS_SUBSCRIPTION_MESSAGES_CHANNEL_NAME, message=subscription_message)
+        else:
+            SubscriberEventsSubscriber.logger.info("Unknown message: {}".format(message))
