@@ -10,7 +10,7 @@ from environment import REDIS_URL, REDIS_CHANNEL_NAME
 from nba_player_news.data.platform_subscriptions_publishers import EmailSubscriptionsPublisher, TwitterSubscriptionsPublisher, FacebookMessengerSubscriptionsPublisher
 
 
-class Subscriber:
+class PlayerNewsSubscriber:
     logging.config.fileConfig(os.path.join(os.path.dirname(__file__), "../../logger.conf"))
     logger = logging.getLogger("subscriber")
 
@@ -23,7 +23,7 @@ class Subscriber:
         self.publisher_subscriber.subscribe(REDIS_CHANNEL_NAME)
 
     def process_messages(self):
-        Subscriber.logger.info("Started processing messages at {}".format(datetime.datetime.now()))
+        PlayerNewsSubscriber.logger.info("Started processing messages at {}".format(datetime.datetime.now()))
 
         while True:
             message = self.publisher_subscriber.get_message()
@@ -31,7 +31,7 @@ class Subscriber:
                 self.process_message(message=message)
 
     def process_message(self, message):
-        Subscriber.logger.info("Processing message with pattern: {pattern} | type: {type} | channel: {channel} | data: {data}".format(**message))
+        PlayerNewsSubscriber.logger.info("Processing message with pattern: {pattern} | type: {type} | channel: {channel} | data: {data}".format(**message))
         # Goddamn rate limits
         # self.twitter_subscriptions_publisher.publish(message=json.loads(message["data"]))
         # Ugh spam
