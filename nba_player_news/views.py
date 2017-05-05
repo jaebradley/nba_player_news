@@ -1,6 +1,7 @@
 import logging
 import logging.config
 import os
+import json
 
 import redis
 from django.http import HttpResponse, HttpResponseForbidden
@@ -24,6 +25,8 @@ def facebook(request):
         return HttpResponse(request.GET.get("hub.challenge"))
 
     if request.method == "POST":
-        client.publish(channel=REDIS_SUBSCRIBER_EVENTS_CHANNEL_NAME, message=request.body)
+        body = json.loads(request.body)
+        body["platform"] = "facebook"
+        client.publish(channel=REDIS_SUBSCRIBER_EVENTS_CHANNEL_NAME, message=json.dumps(body))
 
     return HttpResponse("ok")
