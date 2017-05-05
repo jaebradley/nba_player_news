@@ -11,7 +11,7 @@ import redis
 from nba_data import Client
 from unidecode import unidecode
 
-from environment import REDIS_URL, REDIS_CHANNEL_NAME
+from environment import REDIS_URL, REDIS_PLAYER_NEWS_CHANNEL_NAME
 
 
 class RotoWireInserter:
@@ -31,9 +31,9 @@ class RotoWireInserter:
             RotoWireInserter.logger.info("Inserted player news item: {} | was set: {}".format(value, was_set))
 
             if was_set:
-                RotoWireInserter.logger.info("Publishing player news item: {} to channel {}".format(value, REDIS_CHANNEL_NAME))
-                subscriber_count = self.redis_client.publish(channel=REDIS_CHANNEL_NAME, message=value)
-                RotoWireInserter.logger.info("Published player news item: {} to channel {} with {} subscribers".format(value, REDIS_CHANNEL_NAME, subscriber_count))
+                RotoWireInserter.logger.info("Publishing player news item: {} to channel {}".format(value, REDIS_PLAYER_NEWS_CHANNEL_NAME))
+                subscriber_count = self.redis_client.publish(channel=REDIS_PLAYER_NEWS_CHANNEL_NAME, message=value)
+                RotoWireInserter.logger.info("Published player news item: {} to channel {} with {} subscribers".format(value, REDIS_PLAYER_NEWS_CHANNEL_NAME, subscriber_count))
 
     @staticmethod
     def calculate_key(player_news_item):

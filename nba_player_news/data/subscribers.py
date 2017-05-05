@@ -6,7 +6,7 @@ import os
 
 import redis
 
-from environment import REDIS_URL, REDIS_CHANNEL_NAME, REDIS_SUBSCRIBER_EVENTS_CHANNEL_NAME, REDIS_SUBSCRIPTION_MESSAGES_CHANNEL_NAME
+from environment import REDIS_URL, REDIS_PLAYER_NEWS_CHANNEL_NAME, REDIS_SUBSCRIBER_EVENTS_CHANNEL_NAME, REDIS_SUBSCRIPTION_MESSAGES_CHANNEL_NAME
 from nba_player_news.data.platform_subscriptions_publishers import FacebookMessengerSubscriptionsPublisher
 from nba_player_news.data.senders import FacebookMessager
 from nba_player_news.data.subscriber_event_processors import FacebookSubscriberEventsProcessor
@@ -20,7 +20,7 @@ class PlayerNewsSubscriber:
         self.facebook_messenger_subscriptions_publisher = FacebookMessengerSubscriptionsPublisher()
         self.redis_client = redis.StrictRedis().from_url(url=REDIS_URL)
         self.publisher_subscriber = self.redis_client.pubsub()
-        self.publisher_subscriber.subscribe(REDIS_CHANNEL_NAME)
+        self.publisher_subscriber.subscribe(REDIS_PLAYER_NEWS_CHANNEL_NAME)
 
     def process_messages(self):
         PlayerNewsSubscriber.logger.info("Started processing messages at {}".format(datetime.datetime.now()))
