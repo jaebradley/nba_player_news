@@ -57,7 +57,7 @@ class RotoWireInserter:
             "headline": unidecode(unicode(player_news_item.headline)),
             "injury": {
                 "is_injured": player_news_item.injury.is_injured,
-                "status": player_news_item.injury.status.value,
+                "status": "Unknown" if player_news_item.injury.status is None else player_news_item.injury.status.value,
                 "affected_area": unidecode(unicode(player_news_item.injury.affected_area)),
                 "detail": unidecode(unicode(player_news_item.injury.detail)),
                 "side": unidecode(unicode(player_news_item.injury.side))
