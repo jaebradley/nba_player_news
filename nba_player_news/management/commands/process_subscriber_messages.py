@@ -1,6 +1,6 @@
 from django.core.management.base import BaseCommand
 
-from nba_player_news.data.subscribers import SubscriptionMessagesSubscriber
+from nba_player_news.data.subscribers import SubscriberEventsSubscriber
 
 
 class Command(BaseCommand):
@@ -12,4 +12,4 @@ class Command(BaseCommand):
 
     @staticmethod
     def process_messages():
-        SubscriptionMessagesSubscriber().process_messages()
+        SubscriberEventsSubscriber().process_messages()

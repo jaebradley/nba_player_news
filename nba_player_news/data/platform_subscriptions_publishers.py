@@ -1,11 +1,15 @@
+import json
 import logging
 import logging.config
 import os
 
+import redis
 import tweepy
 
+from environment import REDIS_URL, REDIS_SUBSCRIPTION_MESSAGES_CHANNEL_NAME
 from environment import TWITTER_ACCESS_SECRET, TWITTER_ACCESS_TOKEN, TWITTER_CONSUMER_KEY, TWITTER_CONSUMER_SECRET
-from nba_player_news.data.senders import Emailer, Tweeter, FacebookMessager
+from nba_player_news.data.messages import SubscriptionMessage
+from nba_player_news.data.senders import Emailer, Tweeter
 from nba_player_news.data.sent_message_builders import FacebookMessengerMessageBuilder
 from nba_player_news.models import Subscription
 
@@ -46,10 +50,12 @@ class FacebookMessengerSubscriptionsPublisher:
     logger = logging.getLogger("facebookSubscriptionsPublisher")
 
     def __init__(self):
-        self.messager = FacebookMessager()
+        self.redis_client = redis.StrictRedis().from_url(url=REDIS_URL)
 
     def publish(self, message):
         for subscription in Subscription.objects.filter(platform="facebook", unsubscribed_at=None):
             FacebookMessengerSubscriptionsPublisher.logger.info("Publishing message: {} to subscription: {}".format(message, subscription))
-            self.messager.send(recipient_id=subscription.platform_identifier, message=FacebookMessengerMessageBuilder(message=message).build())
+            message_text = FacebookMessengerMessageBuilder(message=message).build()
+            subscription_message = SubscriptionMessage(platform=subscription.platform, platform_identifier=subscription.platform_identifier, text=message_text)
+            self.redis_client.publish(channel=REDIS_SUBSCRIPTION_MESSAGES_CHANNEL_NAME, message=subscription_message.to_json())
 
