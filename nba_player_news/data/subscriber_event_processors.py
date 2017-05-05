@@ -15,18 +15,16 @@ class FacebookSubscriberEventsProcessor:
         pass
 
     def process(self, event_data):
-        if event_data.get("object") == "page":
-            for entry in event_data.get("entry"):
-                for message_event in entry["messaging"]:
-                    if "message" in message_event:
-                        sender_id = message_event["sender"]["id"]
-                        recipient_id = message_event["recipient"]["id"]
-                        message_text = message_event["message"]["text"]
-                        logger.info("Sender: {} | Recipient: {} | Message: {}".format(sender_id, recipient_id, message_text))
-                        if message_text.lower() == "subscribe":
-                            return self.process_subscribe_event(user_id=sender_id)
-                        elif message_text.lower() == "unsubscribe":
-                            self.process_unsubscribe_event(user_id=sender_id)
+        message_event = event_data["entry"][0]["messaging"][0]
+        sender_id = message_event["sender"]["id"]
+        message_text = message_event["message"]["text"]
+        if message_text.lower() == "subscribe":
+            return self.process_subscribe_event(user_id=sender_id)
+        elif message_text.lower() == "unsubscribe":
+            return self.process_unsubscribe_event(user_id=sender_id)
+        else:
+            return SubscriptionMessage(platform="facebook", platform_identifier=sender_id,
+                                       text="Type 'Subscribe' or 'Unsubscribe'")
 
     def process_subscribe_event(self, user_id):
         subscription, created = Subscription.objects.get_or_create(platform="facebook", platform_identifier=user_id)
@@ -38,6 +36,10 @@ class FacebookSubscriberEventsProcessor:
             subscription.update(unsubscribed_at=None)
             return SubscriptionMessage(platform="facebook", platform_identifier=user_id,
                                        text="Thanks for resubscribing!")
+
+        else:
+            return SubscriptionMessage(platform="facebook", platform_identifier=user_id,
+                                       text="You are already subscribed!")
 
     def process_unsubscribe_event(self, user_id):
         if not Subscription.objects.filter(platform="facebook", platform_identifier=user_id).exists():

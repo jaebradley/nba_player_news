@@ -54,7 +54,7 @@ class SubscriberEventsSubscriber:
     def process_message(self, message):
         if message["platform"] == "facebook":
             subscription_message = self.facebook_subscriber_events_processor.process(event_data=message)
-            self.redis_client.publish(channel=REDIS_SUBSCRIPTION_MESSAGES_CHANNEL_NAME, message=subscription_message)
+            self.redis_client.publish(channel=REDIS_SUBSCRIPTION_MESSAGES_CHANNEL_NAME, message=subscription_message.to_json())
         else:
             SubscriberEventsSubscriber.logger.info("Unknown message: {}".format(message))
 
@@ -75,7 +75,7 @@ class SubscriptionEventsSubscriber:
     def process_message(self, message):
         if message.platform == "facebook":
             subscription_message = self.facebook_subscriber_events_processor.process(event_data=message)
-            self.redis_client.publish(channel=REDIS_SUBSCRIPTION_MESSAGES_CHANNEL_NAME, message=json.dumps(subscription_message))
+            self.redis_client.publish(channel=REDIS_SUBSCRIPTION_MESSAGES_CHANNEL_NAME, message=subscription_message.to_json())
         else:
             SubscriberEventsSubscriber.logger.info("Unknown message: {}".format(message))
 
@@ -96,9 +96,9 @@ class SubscriptionMessagesSubscriber:
         while True:
             message = self.publisher_subscriber.get_message()
             if message and message["type"] == "message":
-                self.process_message(message=json.loads(message))
+                self.process_message(message=json.loads(message["data"]))
 
     def process_message(self, message):
-        SubscriptionMessagesSubscriber.logger.info("Processing message with pattern: {pattern} | type: {type} | channel: {channel} | data: {data}".format(**message))
-        if message.platform == "facebook":
-            self.facebook_messager.send(recipient_id=message.platform_id, message=message.text)
+        SubscriptionMessagesSubscriber.logger.info("Processing message {}".format(message))
+        if message["platform"] == "facebook":
+            self.facebook_messager.send(recipient_id=message["platform_identifier"], message=message["text"])
