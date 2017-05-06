@@ -9,7 +9,7 @@ from environment import REDIS_URL, REDIS_PLAYER_NEWS_CHANNEL_NAME, REDIS_SUBSCRI
     REDIS_SUBSCRIPTION_MESSAGES_CHANNEL_NAME
 from nba_player_news.data.platform_subscriptions_publishers import FacebookMessengerSubscriptionsPublisher
 from nba_player_news.data.senders import FacebookMessager
-from nba_player_news.data.subscriber_event_processors import FacebookSubscriberEventsProcessor
+from nba_player_news.data.subscriber_event_processors import FacebookSubscriberMessageBuilder
 
 logger = logging.getLogger("subscriber")
 
@@ -38,7 +38,7 @@ class PlayerNewsSubscriber:
 class SubscriberEventsSubscriber:
 
     def __init__(self):
-        self.facebook_subscriber_events_processor = FacebookSubscriberEventsProcessor()
+        self.facebook_subscriber_events_processor = FacebookSubscriberMessageBuilder()
         self.redis_client = redis.StrictRedis().from_url(url=REDIS_URL)
         self.publisher_subscriber = self.redis_client.pubsub()
         self.publisher_subscriber.subscribe(REDIS_SUBSCRIBER_EVENTS_CHANNEL_NAME)

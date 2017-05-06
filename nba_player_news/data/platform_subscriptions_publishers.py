@@ -11,21 +11,22 @@ from nba_player_news.data.senders import Emailer, Tweeter
 from nba_player_news.data.sent_message_builders import FacebookMessengerMessageBuilder
 from nba_player_news.models import Subscription
 
-logger = logging.getLogger("subscriptionMessagePublisher")
-
 
 class EmailSubscriptionsPublisher:
+    logger = logging.getLogger("subscriptionMessagePublisher")
 
     def __init__(self):
         self.emailer = Emailer()
 
     def publish(self, message):
         for subscription in Subscription.objects.filter(platform="email", unsubscribed_at=None):
-            logger.info("Publishing message: {} to subscription: {}".format(message, subscription))
+            EmailSubscriptionsPublisher.logger.info("Publishing message: {} to subscription: {}"
+                                                    .format(message, subscription))
             self.emailer.send(destination=subscription.platform_identifier, message=message)
 
 
 class TwitterSubscriptionsPublisher:
+    logger = logging.getLogger("subscriptionMessagePublisher")
 
     def __init__(self):
         auth = tweepy.OAuthHandler(TWITTER_CONSUMER_KEY, TWITTER_CONSUMER_SECRET)
@@ -36,11 +37,13 @@ class TwitterSubscriptionsPublisher:
     def publish(self, message):
         for page in tweepy.Cursor(self.client.followers_ids, id="nba_player_news", count=200).pages():
             for follower_id in page:
-                logger.info("Publishing message: {} to follower: {}".format(message, follower_id))
+                TwitterSubscriptionsPublisher.logger.info("Publishing message: {} to follower: {}"
+                                                          .format(message, follower_id))
                 self.tweeter.send(user_id=follower_id, message=message)
 
 
 class FacebookMessengerSubscriptionsPublisher:
+    logger = logging.getLogger("subscriptionMessagePublisher")
 
     def __init__(self):
         self.redis_client = redis.StrictRedis().from_url(url=REDIS_URL)
@@ -48,8 +51,15 @@ class FacebookMessengerSubscriptionsPublisher:
     def publish(self, message):
         for subscription in Subscription.objects.filter(platform="facebook", unsubscribed_at=None):
             message_text = FacebookMessengerMessageBuilder(message=message).build()
-            subscription_message = SubscriptionMessage(platform=subscription.platform, platform_identifier=subscription.platform_identifier, text=message_text)
-            logger.info("Publishing message: {} to subscription: {}".format(subscription_message.to_json(), subscription))
-            subscriber_count = self.redis_client.publish(channel=REDIS_SUBSCRIPTION_MESSAGES_CHANNEL_NAME, message=subscription_message.to_json())
-            logger.info("Publishing message: {} to channel: {} with {} subscribers".format(subscription_message.to_json(), REDIS_SUBSCRIPTION_MESSAGES_CHANNEL_NAME, subscriber_count))
+            subscription_message = SubscriptionMessage(platform=subscription.platform,
+                                                       platform_identifier=subscription.platform_identifier,
+                                                       text=message_text)
+            FacebookMessengerSubscriptionsPublisher.logger.info("Publishing message: {} to subscription: {}"
+                                                                .format(subscription_message.to_json(), subscription))
+            subscriber_count = self.redis_client.publish(channel=REDIS_SUBSCRIPTION_MESSAGES_CHANNEL_NAME,
+                                                         message=subscription_message.to_json())
+            FacebookMessengerSubscriptionsPublisher.logger.info("Publishing message: {} to channel: {} with {} subscribers"
+                                                                .format(subscription_message.to_json(),
+                                                                        REDIS_SUBSCRIPTION_MESSAGES_CHANNEL_NAME,
+                                                                        subscriber_count))
 

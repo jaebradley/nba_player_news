@@ -8,7 +8,7 @@ from nba_player_news.models import Subscription
 logger = logging.getLogger("subscriptionEvents")
 
 
-class FacebookSubscriberEventsProcessor:
+class FacebookSubscriberMessageBuilder:
     def __init__(self):
         pass
 
