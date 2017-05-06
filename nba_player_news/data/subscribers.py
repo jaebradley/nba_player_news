@@ -82,7 +82,7 @@ class SubscriptionMessagesSubscriber:
 
     def process_message(self, message):
         if message["platform"] == "facebook":
-            logger.info("Sending message: {} to user: {}".format(message["text"], message["platform_identifer"]))
+            logger.info("Sending message: {} to user: {}".format(message["text"], message["platform_identifier"]))
             self.facebook_messager.send(recipient_id=message["platform_identifier"], message=message["text"])
         else:
             logger.info("Unknown message: {}".format(message))
