@@ -28,7 +28,7 @@ class PlayerNewsSubscriber:
         while True:
             message = self.publisher_subscriber.get_message()
             if message and message["type"] == "message":
-                logger.info("Processing message: {}".format(message))
+                logger.info("Processing player news message: {}".format(message))
                 self.process_message(message=json.loads(message["data"]))
 
     def process_message(self, message):
@@ -49,14 +49,14 @@ class SubscriberEventsSubscriber:
         while True:
             message = self.publisher_subscriber.get_message()
             if message and message["type"] == "message":
-                logger.info("Processing message: {}".format(message))
+                logger.info("Processing subscriber message: {}".format(message))
                 self.process_message(message=json.loads(message["data"]))
 
     def process_message(self, message):
         if message["platform"] == "facebook":
             subscription_message = self.facebook_subscriber_events_processor.process(event_data=message)
-            logger.info("Publishing message: {} to channel: {}".format(subscription_message,
-                                                                       REDIS_SUBSCRIPTION_MESSAGES_CHANNEL_NAME))
+            logger.info("Publishing subscriber message: {} to channel: {}"
+                        .format(subscription_message, REDIS_SUBSCRIPTION_MESSAGES_CHANNEL_NAME))
             self.redis_client.publish(channel=REDIS_SUBSCRIPTION_MESSAGES_CHANNEL_NAME,
                                       message=subscription_message.to_json())
         else:
@@ -77,11 +77,12 @@ class SubscriptionMessagesSubscriber:
         while True:
             message = self.publisher_subscriber.get_message()
             if message and message["type"] == "message":
-                logger.info("Processing message: {}".format(message))
+                logger.info("Processing subscription message: {}".format(message))
                 self.process_message(message=json.loads(message["data"]))
 
     def process_message(self, message):
         if message["platform"] == "facebook":
+            logger.info("Sending message: {} to user: {}".format(message["text"], message["platform_identifer"]))
             self.facebook_messager.send(recipient_id=message["platform_identifier"], message=message["text"])
         else:
             logger.info("Unknown message: {}".format(message))
