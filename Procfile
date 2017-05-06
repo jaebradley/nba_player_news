@@ -1,5 +1,3 @@
 web: gunicorn nba_player_news.wsgi --log-file=-
 insert_player_news_worker: python manage.py insert_player_news
-process_player_news_messages_worker: python manage.py process_player_news_messages
-process_subscriber_messages_worker: python manage.py process_subscriber_messages
-process_subscription_messages_worker: python manage.py process_subscription_messages
+subscribers_worker: python manage.py subscribers
