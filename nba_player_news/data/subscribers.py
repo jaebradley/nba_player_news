@@ -55,10 +55,10 @@ class SubscriberEventsSubscriber:
     def process_message(self, message):
         if message["platform"] == "facebook":
             subscription_message = self.facebook_subscriber_events_processor.process(event_data=message)
-            logger.info("Publishing subscriber message: {} to channel: {}"
-                        .format(subscription_message, REDIS_SUBSCRIPTION_MESSAGES_CHANNEL_NAME))
-            self.redis_client.publish(channel=REDIS_SUBSCRIPTION_MESSAGES_CHANNEL_NAME,
-                                      message=subscription_message.to_json())
+            subscriber_count = self.redis_client.publish(channel=REDIS_SUBSCRIPTION_MESSAGES_CHANNEL_NAME,
+                                                         message=subscription_message.to_json())
+            logger.info("Publishing subscriber message: {} to channel: {} with {} subscribers"
+                        .format(subscription_message, REDIS_SUBSCRIPTION_MESSAGES_CHANNEL_NAME, subscriber_count))
         else:
             logger.info("Unknown message: {}".format(message))
 

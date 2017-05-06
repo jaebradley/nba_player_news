@@ -50,6 +50,6 @@ class FacebookMessengerSubscriptionsPublisher:
             message_text = FacebookMessengerMessageBuilder(message=message).build()
             subscription_message = SubscriptionMessage(platform=subscription.platform, platform_identifier=subscription.platform_identifier, text=message_text)
             logger.info("Publishing message: {} to subscription: {}".format(subscription_message.to_json(), subscription))
-            self.redis_client.publish(channel=REDIS_SUBSCRIPTION_MESSAGES_CHANNEL_NAME, message=subscription_message.to_json())
-            logger.info("Publishing message: {} to channel: {}".format(subscription_message.to_json(), REDIS_SUBSCRIPTION_MESSAGES_CHANNEL_NAME))
+            subscriber_count = self.redis_client.publish(channel=REDIS_SUBSCRIPTION_MESSAGES_CHANNEL_NAME, message=subscription_message.to_json())
+            logger.info("Publishing message: {} to channel: {} with {} subscribers".format(subscription_message.to_json(), REDIS_SUBSCRIPTION_MESSAGES_CHANNEL_NAME, subscriber_count))
 
