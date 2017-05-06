@@ -16,7 +16,8 @@ client = redis.StrictRedis().from_url(url=REDIS_URL)
 
 @csrf_exempt
 def facebook(request):
-    logger.info("Webhook from Facebook: {}".format(request))
+    logger.info("Webhook from Facebook. Method: {} | Query Params: {} | Body: {}"
+                .format(request.method, request.GET, request.body))
     if request.method == "GET":
         logger.info("Arguments: {}".format(request.GET))
         if request.GET.get("hub.mode") == "subscribe" and "hub.challenge" in request.GET:
