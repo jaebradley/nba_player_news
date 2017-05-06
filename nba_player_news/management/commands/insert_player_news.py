@@ -1,6 +1,6 @@
 from django.core.management.base import BaseCommand
 
-from nba_player_news.data.inserters import RotoWireInserter
+from nba_player_news.data.publishers import RotoWirePlayerNewsPublisher
 
 
 class Command(BaseCommand):
@@ -12,4 +12,4 @@ class Command(BaseCommand):
 
     @staticmethod
     def insert():
-        RotoWireInserter().insert()
+        RotoWirePlayerNewsPublisher().publish()

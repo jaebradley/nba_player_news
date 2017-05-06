@@ -13,25 +13,25 @@ from unidecode import unidecode
 from environment import REDIS_URL, REDIS_PLAYER_NEWS_CHANNEL_NAME
 
 
-class RotoWireInserter:
-    logger = logging.getLogger('inserter')
+class RotoWirePlayerNewsPublisher:
+    logger = logging.getLogger('publisher')
 
     def __init__(self):
         self.redis_client = redis.StrictRedis.from_url(url=REDIS_URL)
 
-    def insert(self):
+    def publish(self):
         for player_news_item in Client.get_player_news():
-            value = RotoWireInserter.to_json(player_news_item=player_news_item)
+            value = RotoWirePlayerNewsPublisher.to_json(player_news_item=player_news_item)
 
-            RotoWireInserter.logger.info("Inserting player news item: {}".format(value))
-            was_set = self.redis_client.setnx(name=RotoWireInserter.calculate_key(player_news_item=player_news_item),
+            RotoWirePlayerNewsPublisher.logger.info("Inserting player news item: {}".format(value))
+            was_set = self.redis_client.setnx(name=RotoWirePlayerNewsPublisher.calculate_key(player_news_item=player_news_item),
                                               value=value)
-            RotoWireInserter.logger.info("Inserted player news item: {} | was set: {}".format(value, was_set))
+            RotoWirePlayerNewsPublisher.logger.info("Inserted player news item: {} | was set: {}".format(value, was_set))
 
             if was_set:
-                RotoWireInserter.logger.info("Publishing player news item: {} to channel {}".format(value, REDIS_PLAYER_NEWS_CHANNEL_NAME))
+                RotoWirePlayerNewsPublisher.logger.info("Publishing player news item: {} to channel {}".format(value, REDIS_PLAYER_NEWS_CHANNEL_NAME))
                 subscriber_count = self.redis_client.publish(channel=REDIS_PLAYER_NEWS_CHANNEL_NAME, message=value)
-                RotoWireInserter.logger.info("Published player news item: {} to channel {} with {} subscribers".format(value, REDIS_PLAYER_NEWS_CHANNEL_NAME, subscriber_count))
+                RotoWirePlayerNewsPublisher.logger.info("Published player news item: {} to channel {} with {} subscribers".format(value, REDIS_PLAYER_NEWS_CHANNEL_NAME, subscriber_count))
 
     @staticmethod
     def calculate_key(player_news_item):
@@ -39,11 +39,11 @@ class RotoWireInserter:
 
     @staticmethod
     def to_json(player_news_item):
-        RotoWireInserter.logger.info("JSONifying Player News Item: {}", player_news_item)
+        RotoWirePlayerNewsPublisher.logger.info("JSONifying Player News Item: {}", player_news_item)
         return json.dumps({
             "caption": unidecode(unicode(player_news_item.caption)),
             "description": unidecode(unicode(player_news_item.description)),
-            "published_at_unix_timestamp": RotoWireInserter.to_timestamp(value=player_news_item.published_at),
+            "published_at_unix_timestamp": RotoWirePlayerNewsPublisher.to_timestamp(value=player_news_item.published_at),
             "source_update_id": player_news_item.source_update_id,
             "source_id": player_news_item.source_id,
             "source_player_id": player_news_item.source_player_id,
