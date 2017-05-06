@@ -9,7 +9,6 @@ from django.views.decorators.csrf import csrf_exempt
 
 from environment import FACEBOOK_VERIFY_TOKEN, REDIS_SUBSCRIBER_EVENTS_CHANNEL_NAME, REDIS_URL
 
-logging.config.fileConfig(os.path.join(os.path.dirname(__file__), "../logger.conf"))
 logger = logging.getLogger("views")
 
 client = redis.StrictRedis().from_url(url=REDIS_URL)
@@ -17,6 +16,7 @@ client = redis.StrictRedis().from_url(url=REDIS_URL)
 
 @csrf_exempt
 def facebook(request):
+    logger.info("Webhook from Facebook: {}".format(request))
     if request.method == "GET":
         logger.info("Arguments: {}".format(request.GET))
         if request.GET.get("hub.mode") == "subscribe" and "hub.challenge" in request.GET:

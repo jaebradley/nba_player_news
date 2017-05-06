@@ -1,18 +1,17 @@
 import json
 import logging
 import logging.config
-import os
 
 import requests
 import tweepy
 import yagmail
 
-from environment import GMAIL_PASSWORD, GMAIL_USERNAME, TWITTER_ACCESS_SECRET, TWITTER_ACCESS_TOKEN, TWITTER_CONSUMER_KEY, TWITTER_CONSUMER_SECRET, FACEBOOK_PAGE_ACCESS_TOKEN
+from environment import GMAIL_PASSWORD, GMAIL_USERNAME, TWITTER_ACCESS_SECRET, TWITTER_ACCESS_TOKEN, \
+    TWITTER_CONSUMER_KEY, TWITTER_CONSUMER_SECRET, FACEBOOK_PAGE_ACCESS_TOKEN
 from nba_player_news.data.sent_message_builders import EmailMessageBuilder, TwitterMessageBuilder
 
 
 class Emailer:
-    logging.config.fileConfig(os.path.join(os.path.dirname(__file__), "../../logger.conf"))
     logger = logging.getLogger("emailer")
 
     def __init__(self):
@@ -28,7 +27,6 @@ class Emailer:
 
 
 class Tweeter:
-    logging.config.fileConfig(os.path.join(os.path.dirname(__file__), "../../logger.conf"))
     logger = logging.getLogger("tweeter")
 
     def __init__(self):
@@ -41,7 +39,6 @@ class Tweeter:
 
 
 class FacebookMessager:
-    logging.config.fileConfig(os.path.join(os.path.dirname(__file__), "../../logger.conf"))
     logger = logging.getLogger("facebookMessager")
 
     def __init__(self):
