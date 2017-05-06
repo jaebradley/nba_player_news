@@ -1,6 +1,11 @@
 # -*- coding: utf-8 -*-
 
 import datetime
+import logging
+import logging.config
+
+from nba_player_news.data.messages import SubscriptionMessage
+from nba_player_news.models import Subscription
 
 
 class EmailMessageBuilder:
@@ -128,3 +133,54 @@ class FacebookMessengerMessageBuilder:
             side=self.message["injury"]["side"],
             detail=self.message["injury"]["detail"]
         )
+
+
+class FacebookSubscriberMessageBuilder:
+    def __init__(self, event_data):
+        self.event_data = event_data
+        self.user_id = self.event_data["entry"][0]["messaging"][0]["sender"]["id"]
+
+    def build(self):
+        logging.info("Event data: {}".format(self.event_data))
+        message_event = self.event_data["entry"][0]["messaging"][0]
+        sender_id = message_event["sender"]["id"]
+        message_text = message_event["message"]["text"]
+        if message_text.lower() == "subscribe":
+            return self.build_subscribe_message()
+        elif message_text.lower() == "unsubscribe":
+            return self.build_unsubscribe_message()
+        else:
+            return SubscriptionMessage(platform="facebook", platform_identifier=sender_id,
+                                       text="Type 'Subscribe' or 'Unsubscribe'")
+
+    def build_subscribe_message(self):
+        subscription, created = Subscription.objects.get_or_create(platform="facebook",
+                                                                   platform_identifier=self.user_id)
+        logging.info("Subscription: {} was created: {} for user: {}".format(subscription, created, self.user_id))
+
+        if created:
+            return SubscriptionMessage(platform="facebook", platform_identifier=self.user_id,
+                                       text="You are now subscribed!")
+
+        elif subscription.unsubscribed_at is not None:
+            subscription.update(unsubscribed_at=None)
+            logging.info("User: {} was resubscribed".format(self.user_id))
+            return SubscriptionMessage(platform="facebook", platform_identifier=self.user_id,
+                                       text="Thanks for resubscribing!")
+
+        else:
+            logging.info("User: {} is already subscribed".format(self.user_id))
+            return SubscriptionMessage(platform="facebook", platform_identifier=self.user_id,
+                                       text="You are already subscribed!")
+
+    def build_unsubscribe_message(self):
+        if not Subscription.objects.filter(platform="facebook", platform_identifier=self.user_id).exists():
+            logging.info("User: {} is not subscribed".format(self.user_id))
+            return SubscriptionMessage(platform="facebook", platform_identifier=self.user_id,
+                                       text="You don't have a subscription!")
+        else:
+            logging.info("User: {} is already unsubscribed".format(self.user_id))
+            Subscription.objects.filter(platform="facebook", platform_identifier=self.user_id).first()\
+                                .update(unsubscribed_at=datetime.datetime.now())
+            return SubscriptionMessage(platform="facebook", platform_identifier=self.user_id,
+                                       text="You were unsubscribed!")

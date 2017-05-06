@@ -13,3 +13,7 @@ class SubscriptionMessage:
             "platform_identifier": self.platform_identifier,
             "text": self.text
         })
+
+    def __unicode__(self):
+        return "Platform: {} | Platform Identifier: {} | Text: {}"\
+            .format(self.platform, self.platform_identifier, self.text)
