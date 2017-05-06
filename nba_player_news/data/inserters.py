@@ -4,7 +4,6 @@ import datetime
 import json
 import logging
 import logging.config
-import os
 
 import pytz
 import redis
@@ -15,7 +14,6 @@ from environment import REDIS_URL, REDIS_PLAYER_NEWS_CHANNEL_NAME
 
 
 class RotoWireInserter:
-    logging.config.fileConfig(os.path.join(os.path.dirname(__file__), '../../logger.conf'))
     logger = logging.getLogger('inserter')
 
     def __init__(self):
