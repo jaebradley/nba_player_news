@@ -8,7 +8,7 @@ import yagmail
 
 from environment import GMAIL_PASSWORD, GMAIL_USERNAME, TWITTER_ACCESS_SECRET, TWITTER_ACCESS_TOKEN, \
     TWITTER_CONSUMER_KEY, TWITTER_CONSUMER_SECRET, FACEBOOK_PAGE_ACCESS_TOKEN
-from nba_player_news.data.sent_message_builders import EmailMessageBuilder, TwitterMessageBuilder
+from nba_player_news.data.message_builders import EmailMessageBuilder, TwitterMessageBuilder
 
 
 class Emailer:
