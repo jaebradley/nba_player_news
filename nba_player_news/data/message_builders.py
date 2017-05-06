@@ -148,7 +148,7 @@ class FacebookSubscriberMessageBuilder:
         if message_text.lower() == "subscribe":
             return self.build_subscribe_message()
         elif message_text.lower() == "unsubscribe":
-            return self.build_unsubscribe_message(user_id=sender_id)
+            return self.build_unsubscribe_message()
         else:
             return SubscriptionMessage(platform="facebook", platform_identifier=sender_id,
                                        text="Type 'Subscribe' or 'Unsubscribe'")
@@ -164,7 +164,7 @@ class FacebookSubscriberMessageBuilder:
 
         elif subscription.unsubscribed_at is not None:
             subscription.update(unsubscribed_at=None)
-            logging.info("User: {} was resubscribed".format(user_id))
+            logging.info("User: {} was resubscribed".format(self.user_id))
             return SubscriptionMessage(platform="facebook", platform_identifier=self.user_id,
                                        text="Thanks for resubscribing!")
 
@@ -173,14 +173,14 @@ class FacebookSubscriberMessageBuilder:
             return SubscriptionMessage(platform="facebook", platform_identifier=self.user_id,
                                        text="You are already subscribed!")
 
-    def build_unsubscribe_message(self, user_id):
-        if not Subscription.objects.filter(platform="facebook", platform_identifier=user_id).exists():
-            logging.info("User: {} is not subscribed".format(user_id))
-            return SubscriptionMessage(platform="facebook", platform_identifier=user_id,
+    def build_unsubscribe_message(self):
+        if not Subscription.objects.filter(platform="facebook", platform_identifier=self.user_id).exists():
+            logging.info("User: {} is not subscribed".format(self.user_id))
+            return SubscriptionMessage(platform="facebook", platform_identifier=self.user_id,
                                        text="You don't have a subscription!")
         else:
-            logging.info("User: {} is already unsubscribed".format(user_id))
-            Subscription.objects.filter(platform="facebook", platform_identifier=user_id).first()\
+            logging.info("User: {} is already unsubscribed".format(self.user_id))
+            Subscription.objects.filter(platform="facebook", platform_identifier=self.user_id).first()\
                                 .update(unsubscribed_at=datetime.datetime.now())
-            return SubscriptionMessage(platform="facebook", platform_identifier=user_id,
+            return SubscriptionMessage(platform="facebook", platform_identifier=self.user_id,
                                        text="You were unsubscribed!")
