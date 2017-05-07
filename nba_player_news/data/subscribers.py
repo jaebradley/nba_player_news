@@ -14,22 +14,36 @@ from nba_player_news.data.senders import FacebookMessager
 from nba_player_news.models import Subscription, SubscriptionAttempt, SubscriptionAttemptResult
 
 
-class PlayerNewsSubscriber:
+class BaseSubscriber:
     logger = logging.getLogger("subscriber")
 
-    def __init__(self):
+    def __init__(self, subscription_channel_name):
+        self.subscription_channel_name = subscription_channel_name
         self.redis_client = redis.StrictRedis().from_url(url=REDIS_URL)
         self.publisher_subscriber = self.redis_client.pubsub()
-        self.publisher_subscriber.subscribe(REDIS_PLAYER_NEWS_CHANNEL_NAME)
+        self.publisher_subscriber.subscribe(self.subscription_channel_name)
 
     def process_messages(self):
-        PlayerNewsSubscriber.logger.info("Started processing player news messages at {}".format(datetime.datetime.now()))
+        BaseSubscriber.logger.info("Started processing messages at {now}".format(now=datetime.datetime.now()))
 
         while True:
             message = self.publisher_subscriber.get_message()
             if message and message["type"] == "message":
-                PlayerNewsSubscriber.logger.info("Processing player news message: {}".format(message))
-                self.process_message(message=json.loads(message["data"]))
+                BaseSubscriber.logger.info("Processing message: {}".format(message))
+                try:
+                    self.process_message(message=json.loads(message["data"]))
+                except BaseException as e:
+                    # Catch all exceptions so subscriber doesn't die
+                    BaseSubscriber.logger.error(e.message)
+
+    def process_message(self, message):
+        raise NotImplementedError()
+
+
+class PlayerNewsSubscriber(BaseSubscriber):
+
+    def __init__(self):
+        BaseSubscriber.__init__(self, REDIS_PLAYER_NEWS_CHANNEL_NAME)
 
     def process_message(self, message):
         for subscription in Subscription.objects.filter(platform="facebook", unsubscribed_at=None):
@@ -48,22 +62,10 @@ class PlayerNewsSubscriber:
                                                          subscriber_count))
 
 
-class SubscriberEventsSubscriber:
-    logger = logging.getLogger("subscriber")
+class SubscriberEventsSubscriber(BaseSubscriber):
 
     def __init__(self):
-        self.redis_client = redis.StrictRedis().from_url(url=REDIS_URL)
-        self.publisher_subscriber = self.redis_client.pubsub()
-        self.publisher_subscriber.subscribe(REDIS_SUBSCRIBER_EVENTS_CHANNEL_NAME)
-
-    def process_messages(self):
-        PlayerNewsSubscriber.logger.info("Started processing messages at {}".format(datetime.datetime.now()))
-
-        while True:
-            message = self.publisher_subscriber.get_message()
-            if message and message["type"] == "message":
-                PlayerNewsSubscriber.logger.info("Processing subscriber message: {}".format(message))
-                self.process_message(message=json.loads(message["data"]))
+        BaseSubscriber.__init__(self, REDIS_SUBSCRIBER_EVENTS_CHANNEL_NAME)
 
     def process_message(self, message):
         if message["platform"] == "facebook":
@@ -77,23 +79,11 @@ class SubscriberEventsSubscriber:
             PlayerNewsSubscriber.logger.info("Unknown message: {}".format(message))
 
 
-class SubscriptionMessagesSubscriber:
-    logger = logging.getLogger("subscriber")
+class SubscriptionMessagesSubscriber(BaseSubscriber):
 
     def __init__(self):
         self.facebook_messager = FacebookMessager()
-        self.redis_client = redis.StrictRedis().from_url(url=REDIS_URL)
-        self.publisher_subscriber = self.redis_client.pubsub()
-        self.publisher_subscriber.subscribe(REDIS_SUBSCRIPTION_MESSAGES_CHANNEL_NAME)
-
-    def process_messages(self):
-        PlayerNewsSubscriber.logger.info("Started processing messages at {}".format(datetime.datetime.now()))
-
-        while True:
-            message = self.publisher_subscriber.get_message()
-            if message and message["type"] == "message":
-                PlayerNewsSubscriber.logger.info("Processing subscription message: {}".format(message))
-                self.process_message(message=json.loads(message["data"]))
+        BaseSubscriber.__init__(self, REDIS_SUBSCRIPTION_MESSAGES_CHANNEL_NAME)
 
     def process_message(self, message):
         subscription = Subscription.objects.get(platform=message["platform"],
