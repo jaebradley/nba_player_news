@@ -101,29 +101,6 @@ class TwitterSubscriptionsPublisher:
     def publish(self, message):
         for page in tweepy.Cursor(self.client.followers_ids, id="nba_player_news", count=200).pages():
             for follower_id in page:
-                EmailSubscriptionsPublisher.logger.info("Publishing message: {} to follower: {}"
-                                                        .format(message, follower_id))
+                TwitterSubscriptionsPublisher.logger.info("Publishing message: {} to follower: {}"
+                                                          .format(message, follower_id))
                 self.tweeter.send(user_id=follower_id, message=message)
-
-
-class FacebookMessengerSubscriptionsPublisher:
-    logger = logging.getLogger("subscriptionMessagePublisher")
-
-    def __init__(self):
-        self.redis_client = redis.StrictRedis().from_url(url=REDIS_URL)
-
-    def publish(self, message):
-        for subscription in Subscription.objects.filter(platform="facebook", unsubscribed_at=None):
-            facebook_messages = FacebookMessengerMessageBuilder(message=message).build_messages()
-            for facebook_message in facebook_messages:
-                subscription_message = SubscriptionMessage(platform=subscription.platform,
-                                                           platform_identifier=subscription.platform_identifier,
-                                                           text=facebook_message)
-                EmailSubscriptionsPublisher.logger.info("Publishing message: {} to subscription: {}"
-                                                        .format(subscription_message.to_json(), subscription))
-                subscriber_count = self.redis_client.publish(channel=REDIS_SUBSCRIPTION_MESSAGES_CHANNEL_NAME,
-                                                             message=subscription_message.to_json())
-                EmailSubscriptionsPublisher.logger.info("Publishing message: {} to channel: {} with {} subscribers"
-                                                        .format(subscription_message.to_json(),
-                                                                REDIS_SUBSCRIPTION_MESSAGES_CHANNEL_NAME,
-                                                                subscriber_count))

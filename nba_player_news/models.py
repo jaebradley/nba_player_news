@@ -37,7 +37,7 @@ class SubscriptionAttempt(Model):
 class SubscriptionAttemptResult(Model):
     subscription_attempt = ForeignKey(to=SubscriptionAttempt, on_delete=CASCADE)
     resolved_at = DateTimeField(auto_now_add=True)
-    successful = BooleanField
+    successful = BooleanField(default=False)
     response = TextField(max_length=2048)
 
     def __unicode__(self):
