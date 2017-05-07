@@ -1,8 +1,12 @@
 # -*- coding: utf-8 -*-
+from __future__ import division
 
 import datetime
 import logging
 import logging.config
+from nltk import tokenize
+import math
+import pytz
 
 from nba_player_news.data.messages import SubscriptionMessage
 from nba_player_news.models import Subscription
@@ -95,6 +99,7 @@ class TwitterMessageBuilder:
 
 class FacebookMessengerMessageBuilder:
 
+    max_message_length = 640
     message_format = """
     {headline}
 
@@ -113,6 +118,14 @@ class FacebookMessengerMessageBuilder:
 
     def __init__(self, message):
         self.message = message
+
+    def build_with_index(self, index, total_messages, text):
+        return """
+        {headline}
+
+        {text}
+        """.format(headline="{} ({}/{})".format(self.message["headline"], index, total_messages),
+                   text=text)
 
     def build(self):
         return FacebookMessengerMessageBuilder.message_format.format(
@@ -133,6 +146,63 @@ class FacebookMessengerMessageBuilder:
             side=self.message["injury"]["side"],
             detail=self.message["injury"]["detail"]
         )
+
+    def headline(self, index, total_messages):
+        return """
+        {value} ({index}/{total_messages})
+        """.format(value=self.message["headline"], index=index, total_messages=total_messages)
+
+    def description_sentences(self):
+        return tokenize.sent_tokenize(self.message["description"])
+
+    def caption(self):
+        return """
+{caption}
+
+""".format(caption=self.message["caption"])
+
+    def footer(self):
+        published_at = datetime.datetime.fromtimestamp(timestamp=self.message["published_at_unix_timestamp"])
+        published_at = published_at.replace(tzinfo=pytz.utc)
+        published_at = published_at.astimezone(pytz.timezone("America/New_York"))
+
+        return """{injury_details}
+
+Published At: {published_at} EST
+        """.format(injury_details=self.build_injury_details(),
+                   published_at=published_at.strftime("%Y-%m-%d %-I:%M %p"))
+
+    def build_messages(self):
+        message = self.build()
+        if len(message) > FacebookMessengerMessageBuilder.max_message_length:
+            messages = []
+            message_length = FacebookMessengerMessageBuilder.max_message_length
+            message_count = int(math.ceil(len(message) / message_length))
+            footer = self.footer()
+            # add for safety
+            if len(message) > message_count * message_length + len(footer):
+                message_count += 1
+            sentence_index = 0
+            sentences = self.description_sentences()
+            for index in range(0, message_count):
+                current_message = self.headline(index=index + 1, total_messages=message_count)
+                if index == 0:
+                    current_message += self.caption()
+                message_sentences = []
+                for message_sentence_index in range(sentence_index, len(sentences)):
+                    sentence = sentences[message_sentence_index]
+                    if len(current_message + sentence + footer) > message_length:
+                        break
+                    else:
+                        message_sentences.append(sentence)
+                        sentence_index += 1
+                current_message += " ".join(message_sentences)
+                if index == message_count - 1:
+                    current_message += footer
+                messages.append(current_message.strip())
+            return messages
+        else:
+            return [message]
 
 
 class FacebookSubscriberMessageBuilder:

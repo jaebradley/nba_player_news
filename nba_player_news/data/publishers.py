@@ -114,15 +114,16 @@ class FacebookMessengerSubscriptionsPublisher:
 
     def publish(self, message):
         for subscription in Subscription.objects.filter(platform="facebook", unsubscribed_at=None):
-            message_text = FacebookMessengerMessageBuilder(message=message).build()
-            subscription_message = SubscriptionMessage(platform=subscription.platform,
-                                                       platform_identifier=subscription.platform_identifier,
-                                                       text=message_text)
-            EmailSubscriptionsPublisher.logger.info("Publishing message: {} to subscription: {}"
-                                                    .format(subscription_message.to_json(), subscription))
-            subscriber_count = self.redis_client.publish(channel=REDIS_SUBSCRIPTION_MESSAGES_CHANNEL_NAME,
-                                                         message=subscription_message.to_json())
-            EmailSubscriptionsPublisher.logger.info("Publishing message: {} to channel: {} with {} subscribers"
-                                                    .format(subscription_message.to_json(),
-                                                            REDIS_SUBSCRIPTION_MESSAGES_CHANNEL_NAME,
-                                                            subscriber_count))
+            messages = FacebookMessengerMessageBuilder(message=message).build_messages()
+            for foo in messages:
+                subscription_message = SubscriptionMessage(platform=subscription.platform,
+                                                           platform_identifier=subscription.platform_identifier,
+                                                           text=foo)
+                EmailSubscriptionsPublisher.logger.info("Publishing message: {} to subscription: {}"
+                                                        .format(subscription_message.to_json(), subscription))
+                subscriber_count = self.redis_client.publish(channel=REDIS_SUBSCRIPTION_MESSAGES_CHANNEL_NAME,
+                                                             message=subscription_message.to_json())
+                EmailSubscriptionsPublisher.logger.info("Publishing message: {} to channel: {} with {} subscribers"
+                                                        .format(subscription_message.to_json(),
+                                                                REDIS_SUBSCRIPTION_MESSAGES_CHANNEL_NAME,
+                                                                subscriber_count))
