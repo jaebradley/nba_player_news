@@ -194,7 +194,7 @@ class FacebookMessengerMessageBuilder:
                 # Keep track of the last sentence so that the next message starts from that sentence
                 for message_sentence_index in range(sentence_index, len(sentences)):
                     sentence = sentences[message_sentence_index]
-                    message_description = " ".join(message_sentences)
+                    message_description = " ".join(message_sentences + [sentence])
                     if len(current_message + message_description + footer) > FacebookMessengerMessageBuilder.max_message_length:
                         break
                     else:
