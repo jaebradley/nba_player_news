@@ -12,6 +12,7 @@ graphql-relay==0.4.5
 gunicorn==19.7.1
 iso8601==0.1.11
 nba-data==1.9
+nltk==3.2.2
 oauthlib==2.0.2
 promise==2.0.2
 psycopg2==2.7.1
