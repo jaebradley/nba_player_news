@@ -58,6 +58,8 @@ class FacebookMessager:
 
         FacebookMessager.logger.info("Status Code: {} | Response: {}".format(r.status_code, r.json()))
 
+        return r
+
     @staticmethod
     def build_data(recipient_id, message):
         return json.dumps({
