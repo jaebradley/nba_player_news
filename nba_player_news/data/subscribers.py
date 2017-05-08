@@ -87,14 +87,16 @@ class SubscriptionMessagesSubscriber(BaseSubscriber):
 
     def process_message(self, message):
         subscription = Subscription.objects.get(platform=message["platform"],
-                                                platform_identifer=message["platform_identifier"])
+                                                platform_identifier=message["platform_identifier"])
         if message["platform"] == "facebook":
-            PlayerNewsSubscriber.logger.info("Sending message: {} to user: {}".format(message["text"], message["platform_identifier"]))
+            PlayerNewsSubscriber.logger.info("Sending message: {message} to user: {user}".format(message=message["text"],
+                                                                                                 user=message["platform_identifier"]))
             subscription_attempt = SubscriptionAttempt.objects.create(subscription=subscription, message=message["text"][:2048])
             response = self.facebook_messager.send(recipient_id=message["platform_identifier"], message=message["text"])
             successful = response.status_code == 200
+            print response.__dict__
             SubscriptionAttemptResult.objects.create(subscription_attempt=subscription_attempt, successful=successful,
-                                                     response=response.json()[:2048])
+                                                     response=response.text[:2048])
 
         else:
             PlayerNewsSubscriber.logger.info("Unknown message: {}".format(message))

@@ -140,7 +140,7 @@ class FacebookMessengerMessageBuilder:
             caption=self.message["caption"],
             description=self.message["description"],
             injury_details=self.injury_details(),
-            published_at=self.published_at())
+            published_at=self.published_at()).strip()
 
     def injury_details(self):
         if not self.message["injury"]["is_injured"]:
@@ -179,7 +179,6 @@ class FacebookMessengerMessageBuilder:
 
         else:
             messages = []
-            message_length = FacebookMessengerMessageBuilder.max_message_length
             footer = self.footer()
             message_count = self.expected_message_count()
             sentences = self.description_sentences()
@@ -195,7 +194,8 @@ class FacebookMessengerMessageBuilder:
                 # Keep track of the last sentence so that the next message starts from that sentence
                 for message_sentence_index in range(sentence_index, len(sentences)):
                     sentence = sentences[message_sentence_index]
-                    if len(current_message + sentence + footer) > message_length:
+                    message_description = " ".join(message_sentences)
+                    if len(current_message + message_description + footer) > FacebookMessengerMessageBuilder.max_message_length:
                         break
                     else:
                         message_sentences.append(sentence)
