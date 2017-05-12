@@ -43,12 +43,8 @@ class FacebookMessager:
 
     def __init__(self):
         self.base_url = "https://graph.facebook.com/v2.6/me/messages"
-        self.base_parameters = {
-            "access_token": FACEBOOK_PAGE_ACCESS_TOKEN
-        }
-        self.headers = {
-            "Content-Type": "application/json"
-        }
+        self.base_parameters = {"access_token": FACEBOOK_PAGE_ACCESS_TOKEN}
+        self.headers = {"Content-Type": "application/json"}
 
     def send(self, recipient_id, message):
         FacebookMessager.logger.info("Sending message: {} to {}".format(message, recipient_id))
