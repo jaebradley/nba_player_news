@@ -30,22 +30,21 @@ class Unsubscriber:
         if not self.subscription_exists(user_id=user_id):
             return SubscriberEventOutcome.subscription_does_not_exist
 
-        else:
-            if self.unsubscribed(user_id=user_id):
-                return SubscriberEventOutcome.already_unsubscribed
+        if self.unsubscribed(user_id=user_id):
+            return SubscriberEventOutcome.already_unsubscribed
 
-            self.unsubscribe(user_id=user_id)
+        self.unsubscribe(user_id=user_id)
 
-            return SubscriberEventOutcome.unsubscribed
+        return SubscriberEventOutcome.unsubscribed
 
     def subscription_exists(self, user_id):
         return self.subscriptions.filter(platform=self.platform_name, platform_identifier=user_id).exists()
 
-    def get_subscription(self, user_id):
-        return self.subscriptions.get(platform=self.platform_name, platform_identifier=user_id)
-
     def unsubscribed(self, user_id):
-        return self.get_subscription(user_id=user_id).unsubscribed_at is not None
+        return self.subscriptions.get(platform=self.platform_name, platform_identifier=user_id)\
+                   .unsubscribed_at is not None
 
     def unsubscribe(self, user_id):
-        self.get_subscription(user_id=user_id).update(unsubscribed_at=datetime.datetime.now())
+        subscription = self.subscriptions.get(platform=self.platform_name, platform_identifier=user_id)
+        subscription.unsubscribed_at = datetime.datetime.now()
+        subscription.save()
