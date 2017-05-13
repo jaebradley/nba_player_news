@@ -108,8 +108,6 @@ class FacebookMessengerMessageBuilder:
     {description}
 
     {injury_details}
-
-    Published At: {published_at}
     """
 
     injury_details_format = """
@@ -122,8 +120,6 @@ class FacebookMessengerMessageBuilder:
 
     footer_format = """
     {injury_details}
-
-    Published At: {published_at} EST
     """
 
     caption_format = """
@@ -139,8 +135,7 @@ class FacebookMessengerMessageBuilder:
             headline=self.message["headline"],
             caption=self.message["caption"],
             description=self.message["description"],
-            injury_details=self.injury_details(),
-            published_at=self.published_at()).strip()
+            injury_details=self.injury_details())
 
     def injury_details(self):
         if not self.message["injury"]["is_injured"]:
@@ -163,14 +158,8 @@ class FacebookMessengerMessageBuilder:
     def caption(self):
         return FacebookMessengerMessageBuilder.caption_format.format(caption=self.message["caption"])
 
-    def published_at(self):
-        published_at = datetime.datetime.fromtimestamp(timestamp=self.message["published_at_unix_timestamp"])
-        published_at = published_at.replace(tzinfo=pytz.utc)
-        return published_at.astimezone(pytz.timezone("America/New_York")).strftime("%Y-%m-%d %-I:%M %p")
-
     def footer(self):
-        return FacebookMessengerMessageBuilder.footer_format.format(injury_details=self.injury_details(),
-                                                                    published_at=self.published_at())
+        return FacebookMessengerMessageBuilder.footer_format.format(injury_details=self.injury_details())
 
     def build_messages(self):
         message = self.build()
