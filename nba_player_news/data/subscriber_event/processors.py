@@ -4,12 +4,13 @@ from outcomes import SubscriberEventOutcome
 
 
 class Subscriber:
-    def __init__(self, subscription_model, platform_name):
-        self.subscription_model = subscription_model
+    def __init__(self, subscriptions, platform_name):
+        self.subscriptions = subscriptions
         self.platform_name = platform_name
 
     def process(self, user_id):
-        subscription, created = self.get_or_create_subscription(user_id=user_id)
+        subscription, created = self.subscriptions.get_or_create(platform=self.platform_name,
+                                                                 platform_identifier=user_id)
 
         if created:
             return SubscriberEventOutcome.subscription_created
@@ -19,14 +20,10 @@ class Subscriber:
 
         return SubscriberEventOutcome.already_subscribed
 
-    def get_or_create_subscription(self, user_id):
-        return self.subscription_model.objects.get_or_create(platform=self.platform_name,
-                                                             platform_identifier=user_id)
-
 
 class Unsubscriber:
-    def __init__(self, subscription_model, platform_name):
-        self.subscription_model = subscription_model
+    def __init__(self, subscriptions, platform_name):
+        self.subscriptions = subscriptions
         self.platform_name = platform_name
 
     def process(self, user_id):
@@ -42,12 +39,10 @@ class Unsubscriber:
             return SubscriberEventOutcome.unsubscribed
 
     def subscription_exists(self, user_id):
-        return self.subscription_model.objects\
-                                      .filter(platform=self.platform_name, platform_identifier=user_id)\
-                                      .exists()
+        return self.subscriptions.filter(platform=self.platform_name, platform_identifier=user_id).exists()
 
     def get_subscription(self, user_id):
-        return self.subscription_model.objects.get(platform=self.platform_name, platform_identifier=user_id)
+        return self.subscriptions.get(platform=self.platform_name, platform_identifier=user_id)
 
     def unsubscribed(self, user_id):
         return self.get_subscription(user_id=user_id).unsubscribed_at is not None
