@@ -41,6 +41,7 @@ INSTALLED_APPS = [
     'nba_player_news',
     'graphene_django',
     'django_filters',
+    'django_nose',
     "sslserver",
     'django.contrib.admin',
     'django.contrib.auth',
@@ -89,9 +90,22 @@ GRAPHENE = {
 # Database
 # https://docs.djangoproject.com/en/1.9/ref/settings/#databases
 
-DATABASES = {
-    'default': dj_database_url.parse(url=DATABASE_URL)
-}
+if 'TRAVIS' in os.environ:
+    DATABASES = {
+        'default': {
+            'ENGINE':   'django.db.backends.postgresql_psycopg2',
+            'NAME':     'travisci',
+            'USER':     'postgres',
+            'PASSWORD': '',
+            'HOST':     'localhost',
+            'PORT':     '',
+        }
+    }
+
+else:
+    DATABASES = {
+        'default': dj_database_url.parse(url=DATABASE_URL)
+    }
 
 
 # Password validation
@@ -131,3 +145,13 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/1.9/howto/static-files/
 
 STATIC_URL = '/static/'
+
+# Test specifications
+# Use nose to run all tests
+TEST_RUNNER = 'django_nose.NoseTestSuiteRunner'
+
+# Tell nose to measure coverage on the nba_player_news
+NOSE_ARGS = [
+    '--with-coverage',
+    '--cover-package=nba_player_news',
+]
