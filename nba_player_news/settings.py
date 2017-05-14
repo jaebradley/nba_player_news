@@ -41,6 +41,7 @@ INSTALLED_APPS = [
     'nba_player_news',
     'graphene_django',
     'django_filters',
+    'django_nose',
     "sslserver",
     'django.contrib.admin',
     'django.contrib.auth',
@@ -131,3 +132,13 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/1.9/howto/static-files/
 
 STATIC_URL = '/static/'
+
+# Test specifications
+# Use nose to run all tests
+TEST_RUNNER = 'django_nose.NoseTestSuiteRunner'
+
+# Tell nose to measure coverage on the nba_player_news
+NOSE_ARGS = [
+    '--with-coverage',
+    '--cover-package=nba_player_news',
+]
