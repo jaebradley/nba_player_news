@@ -54,11 +54,7 @@ class FacebookSubscriberEventProcessor:
                                        text=self.subscription_message_text(subscriber_event_outcome=outcome))
         else:
             return SubscriptionMessage(platform=self.platform, platform_identifier=subscriber_id,
-                                       text="Type 'Subscribe' or 'Unsubscribe'")
-
-    def create_subscription_message(self, subscriber_id, subscriber_event_outcome):
-        return SubscriptionMessage(platform=self.platform, platform_identifier=subscriber_id,
-                                   text=self.subscription_message_text(subscriber_event_outcome=subscriber_event_outcome))
+                                       text="Type 'Subscribe' or 'Unsubscribe'.")
 
     def is_subscriber(self, subscriber_event_message_text):
         return subscriber_event_message_text.lower() == "subscribe"
