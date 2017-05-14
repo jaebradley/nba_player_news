@@ -8,9 +8,9 @@ import redis
 from environment import REDIS_URL, REDIS_PLAYER_NEWS_CHANNEL_NAME, REDIS_SUBSCRIBER_EVENTS_CHANNEL_NAME, \
     REDIS_SUBSCRIPTION_MESSAGES_CHANNEL_NAME
 from nba_player_news.data.message_builders import FacebookMessengerMessageBuilder
-from nba_player_news.data.message_builders import FacebookSubscriberMessageBuilder
 from nba_player_news.data.messages import SubscriptionMessage
 from nba_player_news.data.senders import FacebookMessager
+from nba_player_news.data.subscriber_event.processors import FacebookSubscriberEventProcessor
 from nba_player_news.models import Subscription, SubscriptionAttempt, SubscriptionAttemptResult
 
 
@@ -65,16 +65,12 @@ class PlayerNewsSubscriber(BaseSubscriber):
 class SubscriberEventsSubscriber(BaseSubscriber):
 
     def __init__(self):
+        self.facebook_subscriber_event_processor = FacebookSubscriberEventProcessor()
         BaseSubscriber.__init__(self, REDIS_SUBSCRIBER_EVENTS_CHANNEL_NAME)
 
     def process_message(self, message):
         if message["platform"] == "facebook":
-            subscription_message = FacebookSubscriberMessageBuilder(event_data=message).build()
-            subscriber_count = self.redis_client.publish(channel=REDIS_SUBSCRIPTION_MESSAGES_CHANNEL_NAME,
-                                                         message=subscription_message.to_json())
-            PlayerNewsSubscriber.logger.info("Publishing subscriber message: {} to channel: {} with {} subscribers"
-                                             .format(subscription_message, REDIS_SUBSCRIPTION_MESSAGES_CHANNEL_NAME,
-                                                     subscriber_count))
+            self.facebook_subscriber_event_processor.process(subscriber_event_message=message)
         else:
             PlayerNewsSubscriber.logger.info("Unknown message: {}".format(message))
 
@@ -107,6 +103,7 @@ class AllSubscribers:
     logger = logging.getLogger("subscriber")
 
     def __init__(self):
+        self.facebook_subscriber_event_processor = FacebookSubscriberEventProcessor()
         self.facebook_messager = FacebookMessager()
         self.redis_client = redis.StrictRedis().from_url(url=REDIS_URL)
         self.player_news_publisher_subscriber = self.redis_client.pubsub()
@@ -165,12 +162,7 @@ class AllSubscribers:
 
     def process_subscriber_message(self, message):
         if message["platform"] == "facebook":
-            subscription_message = FacebookSubscriberMessageBuilder(event_data=message).build()
-            subscriber_count = self.redis_client.publish(channel=REDIS_SUBSCRIPTION_MESSAGES_CHANNEL_NAME,
-                                                         message=subscription_message.to_json())
-            PlayerNewsSubscriber.logger.info("Publishing subscriber message: {} to channel: {} with {} subscribers"
-                                             .format(subscription_message, REDIS_SUBSCRIPTION_MESSAGES_CHANNEL_NAME,
-                                                     subscriber_count))
+            self.facebook_subscriber_event_processor.process(subscriber_event_message=message)
         else:
             PlayerNewsSubscriber.logger.info("Unknown message: {}".format(message))
 
