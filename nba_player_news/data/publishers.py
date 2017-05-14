@@ -12,11 +12,9 @@ from nba_data import Client
 from unidecode import unidecode
 
 from environment import REDIS_PLAYER_NEWS_CHANNEL_NAME
-from environment import REDIS_URL, REDIS_SUBSCRIPTION_MESSAGES_CHANNEL_NAME
+from environment import REDIS_URL
 from environment import TWITTER_ACCESS_SECRET, TWITTER_ACCESS_TOKEN, TWITTER_CONSUMER_KEY, TWITTER_CONSUMER_SECRET
-from nba_player_news.data.messages import SubscriptionMessage
 from nba_player_news.data.senders import Emailer, Tweeter
-from nba_player_news.data.message_builders import FacebookMessengerMessageBuilder
 from nba_player_news.models import Subscription
 
 
