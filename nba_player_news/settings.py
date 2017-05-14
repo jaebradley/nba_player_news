@@ -90,9 +90,22 @@ GRAPHENE = {
 # Database
 # https://docs.djangoproject.com/en/1.9/ref/settings/#databases
 
-DATABASES = {
-    'default': dj_database_url.parse(url=DATABASE_URL)
-}
+if 'TRAVIS' in os.environ:
+    DATABASES = {
+        'default': {
+            'ENGINE':   'django.db.backends.postgresql_psycopg2',
+            'NAME':     'travisci',
+            'USER':     'postgres',
+            'PASSWORD': '',
+            'HOST':     'localhost',
+            'PORT':     '',
+        }
+    }
+
+else:
+    DATABASES = {
+        'default': dj_database_url.parse(url=DATABASE_URL)
+    }
 
 
 # Password validation
