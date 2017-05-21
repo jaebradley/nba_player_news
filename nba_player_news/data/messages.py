@@ -15,8 +15,8 @@ class SubscriptionMessage:
         })
 
     def __unicode__(self):
-        return "Platform: {} | Platform Identifier: {} | Text: {}"\
-            .format(self.platform, self.platform_identifier, self.text)
+        return "Platform: {platform} | Platform Identifier: {identifier} | Text: {text}"\
+            .format(platform=self.platform, identifier=self.platform_identifier, text=self.text)
 
     def __eq__(self, other):
         if isinstance(other, self.__class__):
