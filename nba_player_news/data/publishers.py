@@ -11,11 +11,13 @@ import tweepy
 from nba_data import Client
 from unidecode import unidecode
 
-from environment import REDIS_PLAYER_NEWS_CHANNEL_NAME
+from environment import REDIS_PLAYER_NEWS_CHANNEL_NAME, REDIS_SUBSCRIPTION_MESSAGES_CHANNEL_NAME
 from environment import REDIS_URL
 from environment import TWITTER_ACCESS_SECRET, TWITTER_ACCESS_TOKEN, TWITTER_CONSUMER_KEY, TWITTER_CONSUMER_SECRET
+from nba_player_news.data.messages import SubscriptionMessage
 from nba_player_news.data.senders import Emailer, Tweeter
 from nba_player_news.models import Subscription
+from nba_player_news.data.message_builders import FacebookMessengerMessageBuilder
 
 
 class RotoWirePlayerNewsPublisher:
@@ -72,6 +74,45 @@ class RotoWirePlayerNewsPublisher:
     @staticmethod
     def to_timestamp(value):
         return (value - datetime.datetime(1970, 1, 1, tzinfo=pytz.utc)).total_seconds()
+
+
+class PlayerNewsSubscriptionsMessagesPublisher:
+    logger = logging.getLogger("publisher")
+
+    def __init__(self):
+        self.subscription_message_publisher = PlayerNewsSubscriptionMessagePublisher()
+
+    def publish(self, player_news):
+        for subscription in Subscription.objects.filter(unsubscribed_at=None):
+            messages = self.build_messages(subscription=subscription, player_news=player_news)
+            for message in messages:
+                self.subscription_message_publisher.publish(subscription=subscription, message=message)
+                PlayerNewsSubscriptionsMessagesPublisher.logger("Published to {subscription}: {message}"
+                                                                .format(subscription=subscription, message=message))
+
+    def build_messages(self, subscription, player_news):
+        if subscription.platform == "facebook":
+            return FacebookMessengerMessageBuilder(message=player_news).build_messages()
+
+        raise RuntimeError("Cannot build messages for platform: {platform}".format(platform=subscription.platform))
+
+
+class PlayerNewsSubscriptionMessagePublisher:
+    logger = logging.getLogger("publisher")
+
+    def __init__(self):
+        self.redis_client = redis.StrictRedis().from_url(url=REDIS_URL)
+        self.channel = REDIS_SUBSCRIPTION_MESSAGES_CHANNEL_NAME
+
+    def publish(self, subscription, message):
+        subscription_message = SubscriptionMessage(platform=subscription.platform,
+                                                   platform_identifier=subscription.platform_identifier,
+                                                   text=message)
+        subscriber_count = self.redis_client.publish(channel=self.channel, message=subscription_message.to_json())
+
+        PlayerNewsSubscriptionMessagePublisher.logger.info("Published to {subscriber_count} subscribers: {message}"
+                                                           .format(subscriber_count=subscriber_count,
+                                                                   message=subscription_message.to_json()))
 
 
 class EmailSubscriptionsPublisher:
