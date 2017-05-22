@@ -1,11 +1,9 @@
 # -*- coding: utf-8 -*-
 
-import datetime
 import json
 import logging
 import logging.config
 
-import pytz
 import redis
 from nba_data import Client
 from unidecode import unidecode
@@ -27,14 +25,11 @@ class RotoWirePlayerNewsPublisher:
         for player_news_item in Client.get_player_news():
             value = RotoWirePlayerNewsPublisher.to_json(player_news_item=player_news_item)
 
-            RotoWirePlayerNewsPublisher.logger.info("Inserting player news item: {}".format(value))
             was_set = self.redis_client.setnx(name=RotoWirePlayerNewsPublisher.calculate_key(player_news_item=player_news_item),
                                               value=value)
             RotoWirePlayerNewsPublisher.logger.info("Inserted player news item: {} | was set: {}".format(value, was_set))
 
             if was_set:
-                RotoWirePlayerNewsPublisher.logger.info("Publishing player news item: {} to channel {}"
-                                                        .format(value, REDIS_PLAYER_NEWS_CHANNEL_NAME))
                 subscriber_count = self.redis_client.publish(channel=REDIS_PLAYER_NEWS_CHANNEL_NAME, message=value)
                 RotoWirePlayerNewsPublisher.logger.info("Published player news item: {} to channel {} with {} subscribers"
                                                         .format(value, REDIS_PLAYER_NEWS_CHANNEL_NAME, subscriber_count))
@@ -45,11 +40,9 @@ class RotoWirePlayerNewsPublisher:
 
     @staticmethod
     def to_json(player_news_item):
-        RotoWirePlayerNewsPublisher.logger.info("JSONifying Player News Item: {}", player_news_item)
         return json.dumps({
             "caption": unidecode(unicode(player_news_item.caption)),
             "description": unidecode(unicode(player_news_item.description)),
-            "published_at_unix_timestamp": RotoWirePlayerNewsPublisher.to_timestamp(value=player_news_item.published_at),
             "source_update_id": player_news_item.source_update_id,
             "source_id": player_news_item.source_id,
             "source_player_id": player_news_item.source_player_id,
@@ -67,10 +60,6 @@ class RotoWirePlayerNewsPublisher:
                 "side": unidecode(unicode(player_news_item.injury.side))
             }
         })
-
-    @staticmethod
-    def to_timestamp(value):
-        return (value - datetime.datetime(1970, 1, 1, tzinfo=pytz.utc)).total_seconds()
 
 
 class PlayerNewsSubscriptionsMessagesPublisher:
