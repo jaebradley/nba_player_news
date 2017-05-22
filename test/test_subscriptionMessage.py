@@ -1,6 +1,5 @@
-from unittest import TestCase
-
 import json
+from unittest import TestCase
 
 from nba_player_news.data.messages import SubscriptionMessage
 

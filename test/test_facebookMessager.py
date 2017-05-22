@@ -1,9 +1,10 @@
-from unittest import TestCase
-import mock
 import json
+from unittest import TestCase
 
-from nba_player_news.data.senders import FacebookMessager
+import mock
+
 import environment
+from nba_player_news.data.senders import FacebookMessager
 
 
 def mock_post_request(**kwargs):

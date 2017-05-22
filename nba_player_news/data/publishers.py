@@ -7,17 +7,14 @@ import logging.config
 
 import pytz
 import redis
-import tweepy
 from nba_data import Client
 from unidecode import unidecode
 
 from environment import REDIS_PLAYER_NEWS_CHANNEL_NAME, REDIS_SUBSCRIPTION_MESSAGES_CHANNEL_NAME
 from environment import REDIS_URL
-from environment import TWITTER_ACCESS_SECRET, TWITTER_ACCESS_TOKEN, TWITTER_CONSUMER_KEY, TWITTER_CONSUMER_SECRET
-from nba_player_news.data.messages import SubscriptionMessage
-from nba_player_news.data.senders import Emailer, Tweeter
-from nba_player_news.models import Subscription
 from nba_player_news.data.message_builders import FacebookMessengerMessageBuilder
+from nba_player_news.data.messages import SubscriptionMessage
+from nba_player_news.models import Subscription
 
 
 class RotoWirePlayerNewsPublisher:
@@ -113,33 +110,3 @@ class PlayerNewsSubscriptionMessagePublisher:
         PlayerNewsSubscriptionMessagePublisher.logger.info("Published to {subscriber_count} subscribers: {message}"
                                                            .format(subscriber_count=subscriber_count,
                                                                    message=subscription_message.to_json()))
-
-
-class EmailSubscriptionsPublisher:
-    logger = logging.getLogger("subscriptionMessagePublisher")
-
-    def __init__(self):
-        self.emailer = Emailer()
-
-    def publish(self, message):
-        for subscription in Subscription.objects.filter(platform="email", unsubscribed_at=None):
-            EmailSubscriptionsPublisher.logger.info("Publishing message: {} to subscription: {}"
-                                                    .format(message, subscription))
-            self.emailer.send(destination=subscription.platform_identifier, message=message)
-
-
-class TwitterSubscriptionsPublisher:
-    logger = logging.getLogger("subscriptionMessagePublisher")
-
-    def __init__(self):
-        auth = tweepy.OAuthHandler(TWITTER_CONSUMER_KEY, TWITTER_CONSUMER_SECRET)
-        auth.set_access_token(TWITTER_ACCESS_TOKEN, TWITTER_ACCESS_SECRET)
-        self.client = tweepy.API(auth, wait_on_rate_limit=True, wait_on_rate_limit_notify=True, compression=True)
-        self.tweeter = Tweeter()
-
-    def publish(self, message):
-        for page in tweepy.Cursor(self.client.followers_ids, id="nba_player_news", count=200).pages():
-            for follower_id in page:
-                TwitterSubscriptionsPublisher.logger.info("Publishing message: {} to follower: {}"
-                                                          .format(message, follower_id))
-                self.tweeter.send(user_id=follower_id, message=message)

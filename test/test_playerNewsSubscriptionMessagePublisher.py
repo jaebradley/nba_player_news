@@ -1,9 +1,10 @@
 from unittest import TestCase
+
 from mock import Mock
 
-from nba_player_news.data.publishers import PlayerNewsSubscriptionMessagePublisher
-from nba_player_news.data.messages import SubscriptionMessage
 from environment import REDIS_SUBSCRIPTION_MESSAGES_CHANNEL_NAME
+from nba_player_news.data.messages import SubscriptionMessage
+from nba_player_news.data.publishers import PlayerNewsSubscriptionMessagePublisher
 
 
 class MockSubscription:
