@@ -7,8 +7,7 @@ import redis
 
 from environment import REDIS_URL, REDIS_PLAYER_NEWS_CHANNEL_NAME, REDIS_SUBSCRIBER_EVENTS_CHANNEL_NAME, \
     REDIS_SUBSCRIPTION_MESSAGES_CHANNEL_NAME
-from nba_player_news.data.message_builders import FacebookMessengerMessageBuilder
-from nba_player_news.data.messages import SubscriptionMessage
+from nba_player_news.data.publishers import PlayerNewsSubscriptionsMessagesPublisher
 from nba_player_news.data.senders import FacebookMessager
 from nba_player_news.data.subscriber_event.processors import FacebookSubscriberEventProcessor
 from nba_player_news.models import Subscription, SubscriptionAttempt, SubscriptionAttemptResult
@@ -43,24 +42,11 @@ class BaseSubscriber:
 class PlayerNewsSubscriber(BaseSubscriber):
 
     def __init__(self):
+        self.player_news_subscriptions_messages_publisher = PlayerNewsSubscriptionsMessagesPublisher()
         BaseSubscriber.__init__(self, REDIS_PLAYER_NEWS_CHANNEL_NAME)
 
     def process_message(self, message):
-        for subscription in Subscription.objects.filter(platform="facebook", unsubscribed_at=None):
-            facebook_messages = FacebookMessengerMessageBuilder(message=message).build_messages()
-            for facebook_message in facebook_messages:
-                subscription_message = SubscriptionMessage(platform=subscription.platform,
-                                                           platform_identifier=subscription.platform_identifier,
-                                                           text=facebook_message)
-                PlayerNewsSubscriber.logger.info("Publishing message: {message} to subscription: {subscription}"
-                                                 .format(message=subscription_message.to_json(),
-                                                         subscription=subscription))
-                subscriber_count = self.redis_client.publish(channel=REDIS_SUBSCRIPTION_MESSAGES_CHANNEL_NAME,
-                                                             message=subscription_message.to_json())
-                PlayerNewsSubscriber.logger.info("Publishing message: {message} to channel: {channel} with {subscriber_count} subscribers"
-                                                 .format(message=subscription_message.to_json(),
-                                                         channel=REDIS_SUBSCRIPTION_MESSAGES_CHANNEL_NAME,
-                                                         subscriber_count=subscriber_count))
+        self.player_news_subscriptions_messages_publisher.publish(player_news=message)
 
 
 class SubscriberEventsSubscriber(BaseSubscriber):
@@ -113,6 +99,7 @@ class AllSubscribers:
         self.player_news_publisher_subscriber.subscribe(REDIS_PLAYER_NEWS_CHANNEL_NAME)
         self.subscriber_events_publisher_subscriber.subscribe(REDIS_SUBSCRIBER_EVENTS_CHANNEL_NAME)
         self.subscription_messages_publisher_subscriber.subscribe(REDIS_SUBSCRIPTION_MESSAGES_CHANNEL_NAME)
+        self.player_news_subscriptions_messages_publisher = PlayerNewsSubscriptionsMessagesPublisher()
 
     def process_messages(self):
         AllSubscribers.logger.info("Started subscribing to all messages at {now}".format(now=datetime.datetime.now()))
@@ -122,7 +109,7 @@ class AllSubscribers:
             player_news_message = self.player_news_publisher_subscriber.get_message()
             if player_news_message and player_news_message["type"] == "message":
                 try:
-                    self.process_player_news_message(message=json.loads(player_news_message["data"]))
+                    self.player_news_subscriptions_messages_publisher.publish(player_news=json.loads(player_news_message["data"]))
                 except BaseException as e:
                     # Catch all exceptions so subscriber doesn't die
                     AllSubscribers.logger.error(e.message)
@@ -144,22 +131,6 @@ class AllSubscribers:
                 except BaseException as e:
                     # Catch all exceptions so subscriber doesn't die
                     AllSubscribers.logger.error(e.message)
-
-    def process_player_news_message(self, message):
-        for subscription in Subscription.objects.filter(platform="facebook", unsubscribed_at=None):
-            facebook_messages = FacebookMessengerMessageBuilder(message=message).build_messages()
-            for facebook_message in facebook_messages:
-                subscription_message = SubscriptionMessage(platform=subscription.platform,
-                                                           platform_identifier=subscription.platform_identifier,
-                                                           text=facebook_message)
-                PlayerNewsSubscriber.logger.info("Publishing message: {} to subscription: {}"
-                                                 .format(subscription_message.to_json(), subscription))
-                subscriber_count = self.redis_client.publish(channel=REDIS_SUBSCRIPTION_MESSAGES_CHANNEL_NAME,
-                                                             message=subscription_message.to_json())
-                PlayerNewsSubscriber.logger.info("Publishing message: {} to channel: {} with {} subscribers"
-                                                 .format(subscription_message.to_json(),
-                                                         REDIS_SUBSCRIPTION_MESSAGES_CHANNEL_NAME,
-                                                         subscriber_count))
 
     def process_subscriber_message(self, message):
         if message["platform"] == "facebook":
