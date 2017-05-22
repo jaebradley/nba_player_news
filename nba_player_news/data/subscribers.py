@@ -21,15 +21,15 @@ class BaseSubscriber:
         self.subscription_channel_name = subscription_channel_name
         self.redis_client = redis.StrictRedis().from_url(url=REDIS_URL)
         self.publisher_subscriber = self.redis_client.pubsub()
-        self.publisher_subscriber.subscribe(self.subscription_channel_name)
 
     def process_messages(self):
+        self.publisher_subscriber.subscribe(self.subscription_channel_name)
         BaseSubscriber.logger.info("Started processing messages at {now}".format(now=datetime.datetime.now()))
 
         while True:
             message = self.publisher_subscriber.get_message()
             if message and message["type"] == "message":
-                BaseSubscriber.logger.info("Processing message: {}".format(message))
+                BaseSubscriber.logger.info("Processing message: {message}".format(message=message))
                 try:
                     self.process_message(message=json.loads(message["data"]))
                 except BaseException as e:
@@ -52,14 +52,15 @@ class PlayerNewsSubscriber(BaseSubscriber):
                 subscription_message = SubscriptionMessage(platform=subscription.platform,
                                                            platform_identifier=subscription.platform_identifier,
                                                            text=facebook_message)
-                PlayerNewsSubscriber.logger.info("Publishing message: {} to subscription: {}"
-                                                 .format(subscription_message.to_json(), subscription))
+                PlayerNewsSubscriber.logger.info("Publishing message: {message} to subscription: {subscription}"
+                                                 .format(message=subscription_message.to_json(),
+                                                         subscription=subscription))
                 subscriber_count = self.redis_client.publish(channel=REDIS_SUBSCRIPTION_MESSAGES_CHANNEL_NAME,
                                                              message=subscription_message.to_json())
-                PlayerNewsSubscriber.logger.info("Publishing message: {} to channel: {} with {} subscribers"
-                                                 .format(subscription_message.to_json(),
-                                                         REDIS_SUBSCRIPTION_MESSAGES_CHANNEL_NAME,
-                                                         subscriber_count))
+                PlayerNewsSubscriber.logger.info("Publishing message: {message} to channel: {channel} with {subscriber_count} subscribers"
+                                                 .format(message=subscription_message.to_json(),
+                                                         channel=REDIS_SUBSCRIPTION_MESSAGES_CHANNEL_NAME,
+                                                         subscriber_count=subscriber_count))
 
 
 class SubscriberEventsSubscriber(BaseSubscriber):
@@ -72,7 +73,7 @@ class SubscriberEventsSubscriber(BaseSubscriber):
         if message["platform"] == "facebook":
             self.facebook_subscriber_event_processor.process(subscriber_event_message=message)
         else:
-            PlayerNewsSubscriber.logger.info("Unknown message: {}".format(message))
+            PlayerNewsSubscriber.logger.info("Unknown message: {message}".format(message=message))
 
 
 class SubscriptionMessagesSubscriber(BaseSubscriber):
@@ -85,8 +86,8 @@ class SubscriptionMessagesSubscriber(BaseSubscriber):
         subscription = Subscription.objects.get(platform=message["platform"],
                                                 platform_identifier=message["platform_identifier"])
         if message["platform"] == "facebook":
-            PlayerNewsSubscriber.logger.info("Sending message: {message} to user: {user}".format(message=message["text"],
-                                                                                                 user=message["platform_identifier"]))
+            PlayerNewsSubscriber.logger.info("Sending message: {message} to user: {user}"
+                                             .format(message=message["text"], user=message["platform_identifier"]))
             subscription_attempt = SubscriptionAttempt.objects.create(subscription=subscription, message=message["text"][:2048])
             response = self.facebook_messager.send(recipient_id=message["platform_identifier"], message=message["text"])
             successful = response.status_code == 200
