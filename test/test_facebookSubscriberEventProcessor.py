@@ -1,10 +1,11 @@
 from unittest import TestCase
+
 from mock import Mock
 
-from nba_player_news.data.subscriber_event.processors import FacebookSubscriberEventProcessor
-from nba_player_news.data.subscriber_event.outcomes import SubscriberEventOutcome
-from nba_player_news.data.messages import SubscriptionMessage
 from environment import REDIS_SUBSCRIPTION_MESSAGES_CHANNEL_NAME
+from nba_player_news.data.messages import SubscriptionMessage
+from nba_player_news.data.subscriber_event.outcomes import SubscriberEventOutcome
+from nba_player_news.data.subscriber_event.processors import FacebookSubscriberEventProcessor
 
 
 class MockSubscriptionMessage:

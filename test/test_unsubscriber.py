@@ -1,6 +1,7 @@
+import datetime
+
 from django.test import TestCase
 from mock import Mock
-import datetime
 
 from nba_player_news.data.subscriber_event.outcomes import SubscriberEventOutcome
 from nba_player_news.data.subscriber_event.processors import Unsubscriber

@@ -1,7 +1,6 @@
+import json
 import logging
 import logging.config
-import os
-import json
 
 import redis
 from django.http import HttpResponse, HttpResponseForbidden

@@ -10,10 +10,10 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/1.9/ref/settings/
 """
 
+import logging.config
 import os
 
 import dj_database_url
-import logging.config
 
 from environment import DATABASE_URL, DEBUG, SECRET_KEY
 

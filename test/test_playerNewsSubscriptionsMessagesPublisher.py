@@ -1,11 +1,10 @@
+import datetime
+
 from django.test import TestCase
 from mock import Mock, patch
 
-import datetime
-
-from nba_player_news.models import Subscription
-
 from nba_player_news.data.publishers import PlayerNewsSubscriptionsMessagesPublisher
+from nba_player_news.models import Subscription
 
 
 def mock_subscription_builder(subscription, player_news):
