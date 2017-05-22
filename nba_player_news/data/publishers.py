@@ -27,14 +27,11 @@ class RotoWirePlayerNewsPublisher:
         for player_news_item in Client.get_player_news():
             value = RotoWirePlayerNewsPublisher.to_json(player_news_item=player_news_item)
 
-            RotoWirePlayerNewsPublisher.logger.info("Inserting player news item: {}".format(value))
             was_set = self.redis_client.setnx(name=RotoWirePlayerNewsPublisher.calculate_key(player_news_item=player_news_item),
                                               value=value)
             RotoWirePlayerNewsPublisher.logger.info("Inserted player news item: {} | was set: {}".format(value, was_set))
 
             if was_set:
-                RotoWirePlayerNewsPublisher.logger.info("Publishing player news item: {} to channel {}"
-                                                        .format(value, REDIS_PLAYER_NEWS_CHANNEL_NAME))
                 subscriber_count = self.redis_client.publish(channel=REDIS_PLAYER_NEWS_CHANNEL_NAME, message=value)
                 RotoWirePlayerNewsPublisher.logger.info("Published player news item: {} to channel {} with {} subscribers"
                                                         .format(value, REDIS_PLAYER_NEWS_CHANNEL_NAME, subscriber_count))
