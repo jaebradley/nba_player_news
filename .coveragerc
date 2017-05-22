@@ -7,6 +7,5 @@ omit =
     nba_player_news/models.py
     nba_player_news/schema.py
     nba_player_news/wsgi.py
-    nba_player_news/views.py
     nba_player_news/migrations/*
     nba_player_news/management/*
