@@ -3,3 +3,6 @@ omit =
     */python?.?/*
     */site-packages/nose/*
     *__init__*
+    nba_player_news/settings.py
+    nba_player_news/models.py
+    nba_player_news/migrations/*
