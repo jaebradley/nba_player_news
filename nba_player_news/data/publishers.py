@@ -22,7 +22,7 @@ class RotoWirePlayerNewsPublisher:
         self.redis_client = redis.StrictRedis.from_url(url=REDIS_URL)
 
     def publish(self):
-        for player_news_item in Client.get_player_news():
+        for player_news_item in reversed(Client.get_player_news()):
             value = RotoWirePlayerNewsPublisher.to_json(player_news_item=player_news_item)
 
             was_set = self.redis_client.setnx(name=RotoWirePlayerNewsPublisher.calculate_key(player_news_item=player_news_item),
@@ -73,8 +73,8 @@ class PlayerNewsSubscriptionsMessagesPublisher:
             messages = self.build_messages(subscription=subscription, player_news=player_news)
             for message in messages:
                 self.subscription_message_publisher.publish(subscription=subscription, message=message)
-                PlayerNewsSubscriptionsMessagesPublisher.logger("Published to {subscription}: {message}"
-                                                                .format(subscription=subscription, message=message))
+                PlayerNewsSubscriptionsMessagesPublisher.logger.info("Published to {subscription}: {message}"
+                                                                     .format(subscription=subscription, message=message))
 
     def build_messages(self, subscription, player_news):
         if subscription.platform == "facebook":
